@@ -161,14 +161,14 @@ export default async function HomePage() {
           <div className="container">
             <div className="grid md:grid-cols-3 gap-8 text-center">
               <div className="card-elevated p-8 animate-fade-in animate-stagger-1">
-                <div className="text-4xl font-semibold text-primary mb-4">1000+</div>
-                <h3 className="text-headline-small mb-2 text-neutral-900">Websites Created</h3>
-                <p className="text-body-medium text-neutral-600">Professional websites generated from CVs</p>
+                <div className="text-4xl font-semibold text-primary mb-4">16K+</div>
+                <h3 className="text-headline-small mb-2 text-neutral-900">Unique Combinations</h3>
+                <p className="text-body-medium text-neutral-600">Possible website variations from style options</p>
               </div>
               <div className="card-elevated p-8 animate-fade-in animate-stagger-2">
-                <div className="text-4xl font-semibold text-primary mb-4">50+</div>
-                <h3 className="text-headline-small mb-2 text-neutral-900">Templates</h3>
-                <p className="text-body-medium text-neutral-600">Curated professional website templates</p>
+                <div className="text-4xl font-semibold text-primary mb-4">4</div>
+                <h3 className="text-headline-small mb-2 text-neutral-900">Layout Styles</h3>
+                <p className="text-body-medium text-neutral-600">Minimal, Modern, Creative & Professional</p>
               </div>
               <div className="card-elevated p-8 animate-fade-in animate-stagger-3">
                 <div className="text-4xl font-semibold text-primary mb-4">5min</div>

@@ -33,69 +33,65 @@ export async function generateWebsiteWithClaude(
   config: WebsiteConfig
 ): Promise<GeneratedWebsite> {
   try {
-    const systemPrompt = `You are an expert website generator. Create a modern, responsive, professional website based on CV data and configuration.
+    console.log('Generating website with improved Claude prompts...')
+    
+    // Create a focused, practical prompt
+    const systemPrompt = `You are an expert web developer creating professional portfolio websites. Generate a complete, modern website based on CV data and style preferences.
 
-CRITICAL: You must respond with ONLY valid JSON. No markdown, no code blocks, no explanations.
-
-Your response must be a JSON object with this exact structure:
+CRITICAL: Respond with ONLY valid JSON in this exact structure:
 {
-  "html": "string (complete HTML document)",
-  "css": "string (modern CSS)",
-  "javascript": "string (JavaScript)",
+  "html": "complete HTML document with all content",
+  "css": "modern CSS styles",
+  "javascript": "JavaScript for interactivity",
   "metadata": {
-    "title": "string",
-    "description": "string", 
-    "keywords": ["string"]
+    "title": "page title",
+    "description": "page description",
+    "keywords": ["keyword1", "keyword2"]
   }
 }
 
 IMPORTANT RULES:
-1. Start your response with { and end with }
-2. Escape all quotes inside strings with \\"
-3. Use \\n for line breaks in strings
-4. Do not use backticks or template literals
-5. Ensure all strings are properly quoted
-6. Make sure the JSON is valid and parseable
+1. Start with { and end with }
+2. Escape quotes with \\"
+3. Use \\n for line breaks
+4. Generate a complete, standalone HTML website
+5. Include responsive design
+6. Apply the exact colors and fonts specified
+7. Create professional, modern design
+8. Include all sections: hero, about, experience, skills, contact
+9. Make it visually appealing and well-structured`
 
-Guidelines:
-- Create modern, responsive designs
-- Use semantic HTML5 structure
-- Implement mobile-first CSS
-- Include proper SEO meta tags
-- Ensure accessibility (WCAG compliant)
-- Use clean, maintainable code
-- Optimize for performance
-- Use the specified color scheme and font family
-- Create a professional design that showcases skills and experience`
+    const userPrompt = `Create a professional portfolio website for this person:
 
-    const userPrompt = `Generate a professional website based on the following CV data and configuration.
-
-CV Data:
+CV DATA:
 ${JSON.stringify(cvData, null, 2)}
 
-Configuration:
-- Template: ${config.template}
-- Color Scheme: ${config.color_scheme}
-- Font Family: ${config.font_family}
-- Layout: ${config.layout}
-- Features: ${JSON.stringify(config.features)}
-- Style Config: ${JSON.stringify(config.style_config, null, 2)}
+STYLE CONFIGURATION:
+${JSON.stringify(config.style_config, null, 2)}
 
-Create a modern, responsive website that effectively showcases the professional information. The website should be:
-1. Professional and modern in appearance
-2. Fully responsive for all devices
-3. Fast loading and optimized
-4. Accessible and SEO-friendly
-5. Interactive with smooth animations
-6. Customized with the specified color scheme and fonts
+REQUIREMENTS:
+- Layout Style: ${config.style_config?.layout?.style || 'modern'}
+- Primary Color: ${config.style_config?.colors?.primary || '#2563eb'}
+- Secondary Color: ${config.style_config?.colors?.secondary || '#1e40af'}
+- Heading Font: ${config.style_config?.typography?.headingFont || 'Inter'}
+- Body Font: ${config.style_config?.typography?.bodyFont || 'Inter'}
+- Illustrations: ${config.style_config?.visuals?.illustrations || 'minimal'}
+- Icons: ${config.style_config?.visuals?.icons || 'outlined'}
+- Shadows: ${config.style_config?.visuals?.shadows || 'subtle'}
 
-Use the detailed style configuration to create a website that matches the user's preferences exactly:
-- Colors: Use the specified primary, secondary, accent, background, and text colors
-- Typography: Apply the selected heading and body fonts with appropriate sizing
-- Layout: Implement the chosen layout style (minimal, modern, creative, or professional)
-- Visuals: Include the specified illustrations, icons, and shadow styles
+CREATE A WEBSITE WITH:
+1. Hero section with name, title, and call-to-action
+2. About section with professional summary
+3. Experience section with job history
+4. Skills section with technical and soft skills
+5. Contact section with contact information
+6. Modern, responsive design
+7. Smooth animations and hover effects
+8. Professional color scheme
+9. Clean typography
+10. Mobile-friendly layout
 
-Focus on creating a portfolio that highlights the person's skills, experience, and achievements in an engaging way.`
+Make it look professional and modern, similar to high-quality portfolio websites you'd see on sites like Dribbble or Behance.`
 
     const response = await claude.messages.create({
       model: CLAUDE_MODEL,
@@ -103,7 +99,7 @@ Focus on creating a portfolio that highlights the person's skills, experience, a
       messages: [
         {
           role: 'user',
-          content: `\n\nHuman: ${systemPrompt}\n\n${userPrompt}`
+          content: `${systemPrompt}\n\n${userPrompt}`
         }
       ]
     })
@@ -114,13 +110,17 @@ Focus on creating a portfolio that highlights the person's skills, experience, a
       throw new Error('Unexpected response type from Claude')
     }
     
+    console.log('Claude response length:', content.text.length)
+    console.log('Claude response preview:', content.text.substring(0, 200))
+    
     let parsedData: any
     try {
       // Try to parse the response as JSON
       parsedData = JSON.parse(content.text)
+      console.log('✅ JSON parsing successful')
     } catch (parseError) {
-      console.error('JSON parsing error:', parseError)
-      console.error('Raw response:', content.text)
+      console.error('❌ JSON parsing error:', parseError)
+      console.error('Raw response (first 1000 chars):', content.text.substring(0, 1000))
       
       // Try to extract JSON from the response if it's wrapped in markdown
       const jsonMatch = content.text.match(/```json\s*([\s\S]*?)\s*```/) || 
@@ -128,6 +128,7 @@ Focus on creating a portfolio that highlights the person's skills, experience, a
                        content.text.match(/\{[\s\S]*\}/)
       
       if (jsonMatch) {
+        console.log('🔍 Found JSON in markdown or code blocks')
         try {
           let jsonText = jsonMatch[1] || jsonMatch[0]
           
@@ -141,15 +142,16 @@ Focus on creating a portfolio that highlights the person's skills, experience, a
             .replace(/"/g, '\\"') // Escape quotes
           
           parsedData = JSON.parse(jsonText)
+          console.log('✅ JSON parsing successful after extraction')
         } catch (secondParseError) {
-          console.error('Second JSON parsing attempt failed:', secondParseError)
+          console.error('❌ Second JSON parsing attempt failed:', secondParseError)
           
           // Create a fallback website if JSON parsing fails
-          console.log('Creating fallback website due to JSON parsing failure')
+          console.log('🔄 Creating fallback website due to JSON parsing failure')
           parsedData = createFallbackWebsite(cvData, config)
         }
       } else {
-        console.log('No JSON found, creating fallback website')
+        console.log('❌ No JSON found in response, creating fallback website')
         parsedData = createFallbackWebsite(cvData, config)
       }
     }
@@ -229,6 +231,10 @@ Generated on: ${new Date().toISOString()}
 export function createFallbackWebsite(cvData: CVData, config: WebsiteConfig): GeneratedWebsite {
   const name = cvData.personal_info?.name || 'Professional'
   const title = `${name}'s Portfolio`
+  const primaryColor = config.style_config?.colors?.primary || '#2563eb'
+  const secondaryColor = config.style_config?.colors?.secondary || '#1e40af'
+  const headingFont = config.style_config?.typography?.headingFont || 'Inter'
+  const bodyFont = config.style_config?.typography?.bodyFont || 'Inter'
   
   return {
     html: `
@@ -238,52 +244,192 @@ export function createFallbackWebsite(cvData: CVData, config: WebsiteConfig): Ge
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
-    <meta name="description" content="Professional portfolio of ${name}">
-    <meta name="keywords" content="portfolio, professional, ${name}">
+    <meta name="description" content="Professional portfolio of ${name} - ${cvData.personal_info?.summary || 'Experienced professional'}">
+    <meta name="keywords" content="portfolio, professional, ${name}, ${cvData.skills?.technical?.slice(0, 5).join(', ') || ''}">
+    <link href="https://fonts.googleapis.com/css2?family=${headingFont.replace(' ', '+')}:wght@400;600;700&family=${bodyFont.replace(' ', '+')}:wght@400;500&display=swap" rel="stylesheet">
     <style>
         ${getFallbackCSS(config)}
     </style>
 </head>
 <body>
-    <header>
-        <h1>${name}</h1>
-        <p>Professional Portfolio</p>
-    </header>
-    
-    <main>
-        <section>
-            <h2>About</h2>
-            <p>${cvData.personal_info?.summary || 'Experienced professional with a strong track record.'}</p>
-        </section>
-        
-        <section>
-            <h2>Experience</h2>
-            ${cvData.experience?.map(exp => `
-                <div>
-                    <h3>${exp.title}</h3>
-                    <p>${exp.company} - ${exp.duration}</p>
-                    <p>${exp.description}</p>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">${name}</div>
+            <ul class="nav-menu">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#skills">Skills</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section id="home" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">${name}</h1>
+                <p class="hero-subtitle">${cvData.personal_info?.summary || 'Experienced professional with a strong track record of success'}</p>
+                <div class="hero-buttons">
+                    <a href="#contact" class="btn btn-primary">Get In Touch</a>
+                    <a href="#experience" class="btn btn-secondary">View Experience</a>
                 </div>
-            `).join('') || '<p>No experience data available</p>'}
-        </section>
-        
-        <section>
-            <h2>Skills</h2>
-            <p>${cvData.skills?.technical?.join(', ') || 'Skills data not available'}</p>
-        </section>
-    </main>
-    
-    <footer>
-        <p>&copy; 2024 ${name}. All rights reserved.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about">
+        <div class="container">
+            <h2 class="section-title">About Me</h2>
+            <div class="about-content">
+                <p class="about-text">${cvData.personal_info?.summary || 'I am a dedicated professional with extensive experience in my field. I am passionate about delivering high-quality results and continuously improving my skills.'}</p>
+                <div class="about-details">
+                    <div class="detail-item">
+                        <strong>Email:</strong> ${cvData.personal_info?.email || 'contact@example.com'}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Location:</strong> ${cvData.personal_info?.location || 'Available worldwide'}
+                    </div>
+                    ${cvData.personal_info?.phone ? `<div class="detail-item"><strong>Phone:</strong> ${cvData.personal_info.phone}</div>` : ''}
+                    ${cvData.personal_info?.linkedin ? `<div class="detail-item"><strong>LinkedIn:</strong> <a href="${cvData.personal_info.linkedin}" target="_blank">${cvData.personal_info.linkedin}</a></div>` : ''}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="experience" class="experience">
+        <div class="container">
+            <h2 class="section-title">Professional Experience</h2>
+            <div class="experience-grid">
+                ${cvData.experience?.map(exp => `
+                    <div class="experience-card">
+                        <div class="experience-header">
+                            <h3 class="experience-title">${exp.title}</h3>
+                            <span class="experience-company">${exp.company}</span>
+                        </div>
+                        <div class="experience-duration">${exp.duration}</div>
+                        <p class="experience-description">${exp.description}</p>
+                        ${exp.achievements && exp.achievements.length > 0 ? `
+                            <ul class="experience-achievements">
+                                ${exp.achievements.map(achievement => `<li>${achievement}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                    </div>
+                `).join('') || '<p class="no-data">Experience data not available</p>'}
+            </div>
+        </div>
+    </section>
+
+    <section id="skills" class="skills">
+        <div class="container">
+            <h2 class="section-title">Skills & Expertise</h2>
+            <div class="skills-grid">
+                ${cvData.skills?.technical && cvData.skills.technical.length > 0 ? `
+                    <div class="skills-category">
+                        <h3>Technical Skills</h3>
+                        <div class="skills-list">
+                            ${cvData.skills.technical.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                ${cvData.skills?.soft_skills && cvData.skills.soft_skills.length > 0 ? `
+                    <div class="skills-category">
+                        <h3>Soft Skills</h3>
+                        <div class="skills-list">
+                            ${cvData.skills.soft_skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                ${cvData.skills?.languages && cvData.skills.languages.length > 0 ? `
+                    <div class="skills-category">
+                        <h3>Languages</h3>
+                        <div class="skills-list">
+                            ${cvData.skills.languages.map(lang => `<span class="skill-tag">${lang}</span>`).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2 class="section-title">Get In Touch</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <strong>Email:</strong> <a href="mailto:${cvData.personal_info?.email || 'contact@example.com'}">${cvData.personal_info?.email || 'contact@example.com'}</a>
+                    </div>
+                    ${cvData.personal_info?.phone ? `<div class="contact-item"><strong>Phone:</strong> <a href="tel:${cvData.personal_info.phone}">${cvData.personal_info.phone}</a></div>` : ''}
+                    ${cvData.personal_info?.linkedin ? `<div class="contact-item"><strong>LinkedIn:</strong> <a href="${cvData.personal_info.linkedin}" target="_blank">Connect on LinkedIn</a></div>` : ''}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 ${name}. All rights reserved.</p>
+        </div>
     </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll effect to navbar
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
 </body>
 </html>`,
     css: getFallbackCSS(config),
-    javascript: '',
+    javascript: `
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll effect to navbar
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    `,
     metadata: {
       title: title,
-      description: `Professional portfolio of ${name}`,
-      keywords: ['portfolio', 'professional', name]
+      description: `Professional portfolio of ${name} - ${cvData.personal_info?.summary || 'Experienced professional'}`,
+      keywords: ['portfolio', 'professional', name, ...(cvData.skills?.technical?.slice(0, 5) || [])]
     }
   }
 }
