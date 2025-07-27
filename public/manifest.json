@@ -1,0 +1,16 @@
+{
+  "name": "CV2W - CV to Website Generator",
+  "short_name": "CV2W",
+  "description": "Transform your CV into a professional website",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+} 

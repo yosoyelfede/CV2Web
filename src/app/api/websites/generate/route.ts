@@ -1,47 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { generateWebsiteWithClaude, createCompleteHTMLFile } from '@/lib/website-generator'
-import { websiteGenerationSchema, validateRequest } from '@/lib/validation'
-import { sanitizeWebsiteContent } from '@/lib/secure-content-sanitizer'
-import { apiRateLimiter } from '@/lib/rate-limiter'
-import { csrfMiddleware, setCSRFToken } from '@/lib/csrf-protection'
-import { handleError, authErrorResponse, validationErrorResponse, notFoundErrorResponse } from '@/lib/error-handler'
-import { logUnauthorizedAccess } from '@/lib/security-monitoring'
+import { WebsiteConfig } from '@/types'
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
-    const endpoint = request.nextUrl.pathname
-    const method = request.method
-
-    // CSRF protection temporarily disabled for testing
-    // const csrfResult = csrfMiddleware(request)
-    // if (csrfResult) {
-    //   return csrfResult
-    // }
-
-    // Apply rate limiting
-    const rateLimitResult = apiRateLimiter(request)
-    if (rateLimitResult) {
-      return rateLimitResult
-    }
-
+    console.log('Website generation route called')
+    
     const supabase = createServerSupabaseClient()
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
-      logUnauthorizedAccess(ip, endpoint, method)
-      return authErrorResponse()
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
     }
 
-    // Validate request data
-    const validation = await validateRequest(request, websiteGenerationSchema)
-    if (!validation.success) {
-      return validationErrorResponse(validation.error)
+    // Parse the request body
+    const body = await request.json()
+    const { cvDataId, config }: { cvDataId: string; config: WebsiteConfig } = body
+
+    if (!cvDataId) {
+      return NextResponse.json(
+        { error: 'CV data ID is required' },
+        { status: 400 }
+      )
     }
-    
-    const { cvDataId, config } = validation.data
 
     // Get the CV data
     const { data: cvData, error: cvError } = await supabase
@@ -51,7 +37,10 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (cvError || !cvData) {
-      return notFoundErrorResponse('CV data')
+      return NextResponse.json(
+        { error: 'CV data not found' },
+        { status: 404 }
+      )
     }
 
     // Verify the CV document belongs to the user
@@ -62,80 +51,101 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (docError || !cvDocument || cvDocument.user_id !== user.id) {
-      return notFoundErrorResponse('CV data')
+      return NextResponse.json(
+        { error: 'CV data not found or access denied' },
+        { status: 404 }
+      )
     }
 
-    // Website generation logic using Claude
-    const websiteConfig = {
-      template: config?.template || 'modern',
-      color_scheme: config?.color_scheme || 'blue',
-      font_family: config?.font_family || 'inter',
-      layout: config?.layout || 'single_page',
-      features: {
-        contact_form: config?.features?.contact_form ?? true,
-        social_links: config?.features?.social_links ?? true,
-        analytics: config?.features?.analytics ?? false,
-        blog: config?.features?.blog ?? false
-      }
-    }
-
-    // Generate website using Claude
-    console.log('Generating website with Claude...')
-    const generatedWebsite = await generateWebsiteWithClaude(cvData, websiteConfig)
-    console.log('Website generated successfully')
-
-    // Sanitize generated content using the new sanitizer
-    const sanitizedContent = sanitizeWebsiteContent({
-      html: generatedWebsite.html,
-      css: generatedWebsite.css,
-      javascript: generatedWebsite.javascript
-    })
-
-    // Create complete HTML file with sanitized content
-    const completeHTML = createCompleteHTMLFile({
-      ...generatedWebsite,
-      html: sanitizedContent.html,
-      css: sanitizedContent.css,
-      javascript: sanitizedContent.javascript
-    })
-
-    // Create website record
+    // Create initial website record
     const { data: website, error: websiteError } = await supabase
       .from('websites')
       .insert({
         user_id: user.id,
         cv_data_id: cvData.id,
-        name: `${cvData.personal_info.name}'s Portfolio`,
-        description: `Professional portfolio website for ${cvData.personal_info.name}`,
-        deployment_status: 'live',
-        website_config: websiteConfig,
-        generated_code: {
-          html: sanitizedContent.html,
-          css: sanitizedContent.css,
-          javascript: sanitizedContent.javascript,
-          complete_html: completeHTML,
-          metadata: generatedWebsite.metadata
-        }
+        name: `${cvData.personal_info?.name || 'User'}'s Portfolio`,
+        description: `Professional portfolio website for ${cvData.personal_info?.name || 'User'}`,
+        deployment_status: 'generating',
+        website_config: config || {}
       })
       .select()
       .single()
 
     if (websiteError) {
       console.error('Website creation error:', websiteError)
-      return handleError(websiteError, 'Website Creation')
+      return NextResponse.json(
+        { error: 'Website creation failed' },
+        { status: 500 }
+      )
     }
 
-    const response = NextResponse.json({
-      success: true,
-      websiteId: website.id,
-      message: 'Website generation initiated'
-    })
+    try {
+      // Generate the website using Claude AI
+      console.log('Generating website with Claude AI...')
+      const generatedWebsite = await generateWebsiteWithClaude(cvData, config)
+      
+      // Create complete HTML file
+      const completeHTML = createCompleteHTMLFile(generatedWebsite)
+      
+      // Update the website with generated content
+      const { error: updateError } = await supabase
+        .from('websites')
+        .update({
+          deployment_status: 'live',
+          generated_code: {
+            html: generatedWebsite.html,
+            css: generatedWebsite.css,
+            javascript: generatedWebsite.javascript,
+            complete_html: completeHTML,
+            metadata: generatedWebsite.metadata
+          }
+        })
+        .eq('id', website.id)
 
-    // CSRF token setting temporarily disabled
-    // return setCSRFToken(response)
-    return response
+      if (updateError) {
+        console.error('Website update error:', updateError)
+        // Update status to failed
+        await supabase
+          .from('websites')
+          .update({ deployment_status: 'failed' })
+          .eq('id', website.id)
+        
+        return NextResponse.json(
+          { error: 'Failed to save generated website' },
+          { status: 500 }
+        )
+      }
+
+      console.log('Website generated successfully')
+      return NextResponse.json({
+        success: true,
+        websiteId: website.id,
+        message: 'Website generated successfully'
+      })
+
+    } catch (generationError) {
+      console.error('Website generation error:', generationError)
+      
+      // Update status to failed
+      await supabase
+        .from('websites')
+        .update({ 
+          deployment_status: 'failed',
+          deployment_errors: [generationError instanceof Error ? generationError.message : 'Unknown error']
+        })
+        .eq('id', website.id)
+      
+      return NextResponse.json(
+        { error: 'Website generation failed' },
+        { status: 500 }
+      )
+    }
 
   } catch (error) {
-    return handleError(error, 'Website Generation')
+    console.error('Website generation error:', error)
+    return NextResponse.json(
+      { error: 'An error occurred while generating the website' },
+      { status: 500 }
+    )
   }
 } 
