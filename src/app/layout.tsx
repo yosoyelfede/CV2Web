@@ -63,8 +63,12 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#3B82F6" />
+        <meta name="theme-color" content="#0D9488" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Material Design Icons */}
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp" rel="stylesheet" />
       </head>
       <body className="h-full antialiased">
         <div id="root" className="h-full">

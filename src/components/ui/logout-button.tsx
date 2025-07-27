@@ -48,6 +48,7 @@ export function LogoutButton({
       disabled={loading}
       className={className}
     >
+      <span className="material-symbols-rounded text-lg">logout</span>
       {loading ? 'Signing out...' : children}
     </Button>
   )

@@ -48,23 +48,22 @@ export function GoogleSignInButton({
       type="button"
       onClick={handleGoogleSignIn}
       disabled={loading}
-      className={`w-full flex items-center justify-center space-x-3 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`w-full flex items-center justify-center space-x-3 px-6 py-3 rounded-small font-medium text-body-medium transition-all duration-200 hover:shadow-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed elevation-1 ${className}`}
       style={{
         background: '#ffffff',
-        border: '1px solid #dadce0',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.12)',
+        border: '1px solid hsl(var(--color-surface-3))',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.16)';
-        e.currentTarget.style.borderColor = '#c1c1c1';
+        e.currentTarget.style.boxShadow = 'var(--shadow-2)';
+        e.currentTarget.style.borderColor = 'hsl(var(--color-surface-4))';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.12)';
-        e.currentTarget.style.borderColor = '#dadce0';
+        e.currentTarget.style.boxShadow = 'var(--shadow-1)';
+        e.currentTarget.style.borderColor = 'hsl(var(--color-surface-3))';
       }}
     >
       {loading ? (
-        <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-neutral-600 border-t-transparent rounded-full animate-spin" />
       ) : (
         <div className="w-5 h-5 flex items-center justify-center">
           <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -87,7 +86,7 @@ export function GoogleSignInButton({
           </svg>
         </div>
       )}
-      <span className="text-gray-700 font-medium text-base">
+      <span className="text-neutral-700 font-medium text-body-medium">
         {loading ? 'Signing in...' : 'Continue with Google'}
       </span>
     </button>

@@ -6,102 +6,88 @@
 
 @layer base {
   :root {
-    /* Sophisticated Monochromatic Color System */
-    --color-black: 0 0% 0%;
-    --color-white: 0 0% 100%;
-    --color-gray-50: 0 0% 98%;
-    --color-gray-100: 0 0% 96%;
-    --color-gray-200: 0 0% 90%;
-    --color-gray-300: 0 0% 83%;
-    --color-gray-400: 0 0% 64%;
-    --color-gray-500: 0 0% 45%;
-    --color-gray-600: 0 0% 32%;
-    --color-gray-700: 0 0% 25%;
-    --color-gray-800: 0 0% 15%;
-    --color-gray-900: 0 0% 9%;
+    /* Google Material Design Color System */
+    /* Primary (Google Green) */
+    --color-primary-50: 138 76% 97%;
+    --color-primary-100: 141 84% 93%;
+    --color-primary-200: 141 79% 85%;
+    --color-primary-300: 142 77% 73%;
+    --color-primary-400: 142 69% 58%;
+    --color-primary-500: 142 71% 45%;
+    --color-primary-600: 142 76% 36%;
+    --color-primary-700: 142 72% 29%;
+    --color-primary-800: 144 70% 24%;
+    --color-primary-900: 145 80% 20%;
+    --color-primary-950: 144 84% 14%;
     
-    /* Strategic Accent Colors */
-    --color-blue-50: 213 100% 96%;
-    --color-blue-100: 214 95% 93%;
-    --color-blue-200: 213 97% 87%;
-    --color-blue-300: 212 96% 78%;
-    --color-blue-400: 213 94% 68%;
-    --color-blue-500: 217 91% 60%;
-    --color-blue-600: 221 83% 53%;
-    --color-blue-700: 224 76% 48%;
-    --color-blue-800: 226 71% 40%;
-    --color-blue-900: 224 64% 33%;
+    /* Secondary (Google Red) */
+    --color-secondary-50: 254 226 226;
+    --color-secondary-100: 254 202 202;
+    --color-secondary-200: 252 165 165;
+    --color-secondary-300: 248 113 113;
+    --color-secondary-400: 239 68 68;
+    --color-secondary-500: 239 68 68;
+    --color-secondary-600: 220 38 38;
+    --color-secondary-700: 185 28 28;
+    --color-secondary-800: 153 27 27;
+    --color-secondary-900: 127 29 29;
+    --color-secondary-950: 69 10 10;
+    
+    /* Neutral Colors */
+    --color-neutral-50: 0 0% 98%;
+    --color-neutral-100: 0 0% 96%;
+    --color-neutral-200: 0 0% 90%;
+    --color-neutral-300: 0 0% 83%;
+    --color-neutral-400: 0 0% 64%;
+    --color-neutral-500: 0 0% 45%;
+    --color-neutral-600: 0 0% 32%;
+    --color-neutral-700: 0 0% 25%;
+    --color-neutral-800: 0 0% 15%;
+    --color-neutral-900: 0 0% 9%;
+    --color-neutral-950: 0 0% 4%;
+    
+    /* Surface Colors */
+    --color-surface-0: 0 0% 100%;
+    --color-surface-1: 0 0% 98%;
+    --color-surface-2: 0 0% 96%;
+    --color-surface-3: 0 0% 94%;
+    --color-surface-4: 0 0% 92%;
+    --color-surface-5: 0 0% 90%;
     
     /* Semantic Colors */
-    --background: var(--color-white);
-    --foreground: var(--color-gray-900);
-    --muted: var(--color-gray-100);
-    --muted-foreground: var(--color-gray-500);
-    --border: var(--color-gray-200);
-    --input: var(--color-gray-100);
-    --primary: var(--color-blue-600);
-    --primary-foreground: var(--color-white);
-    --secondary: var(--color-gray-100);
-    --secondary-foreground: var(--color-gray-900);
-    --accent: var(--color-blue-50);
-    --accent-foreground: var(--color-blue-700);
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --border: 0 0% 90%;
+    --input: 0 0% 96%;
+    --ring: 142 76% 36%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: var(--color-white);
-    --ring: var(--color-blue-500);
-    
-    /* Typography Scale */
-    --font-size-xs: 0.75rem;
-    --font-size-sm: 0.875rem;
-    --font-size-base: 1rem;
-    --font-size-lg: 1.125rem;
-    --font-size-xl: 1.25rem;
-    --font-size-2xl: 1.5rem;
-    --font-size-3xl: 1.875rem;
-    --font-size-4xl: 2.25rem;
-    --font-size-5xl: 3rem;
-    --font-size-6xl: 3.75rem;
-    --font-size-7xl: 4.5rem;
-    --font-size-8xl: 6rem;
-    --font-size-9xl: 8rem;
-    
-    /* Spacing Scale */
-    --spacing-1: 0.25rem;
-    --spacing-2: 0.5rem;
-    --spacing-3: 0.75rem;
-    --spacing-4: 1rem;
-    --spacing-5: 1.25rem;
-    --spacing-6: 1.5rem;
-    --spacing-8: 2rem;
-    --spacing-10: 2.5rem;
-    --spacing-12: 3rem;
-    --spacing-16: 4rem;
-    --spacing-20: 5rem;
-    --spacing-24: 6rem;
-    --spacing-32: 8rem;
-    --spacing-40: 10rem;
-    --spacing-48: 12rem;
-    --spacing-56: 14rem;
-    --spacing-64: 16rem;
+    --destructive-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
     
     /* Border Radius */
-    --radius-none: 0;
-    --radius-sm: 0.125rem;
-    --radius-base: 0.25rem;
-    --radius-md: 0.375rem;
-    --radius-lg: 0.5rem;
-    --radius-xl: 0.75rem;
-    --radius-2xl: 1rem;
-    --radius-3xl: 1.5rem;
-    --radius-full: 9999px;
-    
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-    --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark mode colors - keeping for future use */
+    --background: 0 0% 9%;
+    --foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 142 76% 36%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 98%;
   }
 
   * {
@@ -128,134 +114,134 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-gray-50;
+    @apply bg-neutral-50;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-full;
+    @apply bg-neutral-300 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400;
+    @apply bg-neutral-400;
   }
 }
 
 @layer components {
   /* Typography System */
-  .text-display-1 {
-    @apply text-6xl md:text-7xl lg:text-8xl font-light leading-[0.9] tracking-tight;
+  .text-display-large {
+    @apply text-4xl md:text-5xl lg:text-6xl font-light leading-tight tracking-tight;
   }
 
-  .text-display-2 {
-    @apply text-5xl md:text-6xl lg:text-7xl font-light leading-[0.95] tracking-tight;
+  .text-display-medium {
+    @apply text-3xl md:text-4xl lg:text-5xl font-light leading-tight tracking-tight;
   }
 
-  .text-headline-1 {
-    @apply text-4xl md:text-5xl lg:text-6xl font-normal leading-tight tracking-tight;
+  .text-display-small {
+    @apply text-2xl md:text-3xl lg:text-4xl font-light leading-tight tracking-tight;
   }
 
-  .text-headline-2 {
-    @apply text-3xl md:text-4xl lg:text-5xl font-normal leading-tight;
+  .text-headline-large {
+    @apply text-2xl md:text-3xl lg:text-4xl font-normal leading-tight tracking-tight;
   }
 
-  .text-headline-3 {
-    @apply text-2xl md:text-3xl lg:text-4xl font-medium leading-tight;
+  .text-headline-medium {
+    @apply text-xl md:text-2xl lg:text-3xl font-normal leading-tight;
   }
 
-  .text-title-1 {
-    @apply text-xl md:text-2xl font-medium leading-tight;
+  .text-headline-small {
+    @apply text-lg md:text-xl lg:text-2xl font-normal leading-tight;
   }
 
-  .text-title-2 {
+  .text-title-large {
     @apply text-lg md:text-xl font-medium leading-tight;
   }
 
-  .text-body-1 {
+  .text-title-medium {
+    @apply text-base md:text-lg font-medium leading-tight;
+  }
+
+  .text-title-small {
+    @apply text-sm md:text-base font-medium leading-tight;
+  }
+
+  .text-body-large {
     @apply text-base md:text-lg leading-relaxed;
   }
 
-  .text-body-2 {
+  .text-body-medium {
     @apply text-sm md:text-base leading-relaxed;
   }
 
-  .text-caption {
+  .text-body-small {
+    @apply text-xs md:text-sm leading-relaxed;
+  }
+
+  .text-label-large {
+    @apply text-sm md:text-base font-medium;
+  }
+
+  .text-label-medium {
     @apply text-xs md:text-sm font-medium;
   }
 
-  .text-overline {
-    @apply text-xs font-medium tracking-widest uppercase;
+  .text-label-small {
+    @apply text-xs font-medium leading-tight tracking-wide;
   }
 
-  /* Button System */
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
-  }
-
+  /* Google Material Design Buttons */
   .btn-primary {
-    @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm hover:shadow-md rounded-lg px-6 py-3;
+    @apply bg-primary text-white hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200 font-medium shadow-sm hover:shadow-md rounded-lg px-6 py-3;
   }
 
   .btn-secondary {
-    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500 border border-gray-200 rounded-lg px-6 py-3;
+    @apply bg-secondary text-white hover:bg-secondary-700 focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2 transition-all duration-200 font-medium shadow-sm hover:shadow-md rounded-lg px-6 py-3;
   }
 
   .btn-ghost {
-    @apply bg-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50 focus:ring-gray-500 rounded-lg px-6 py-3;
+    @apply bg-transparent text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 focus:ring-2 focus:ring-neutral-200 focus:ring-offset-2 transition-all duration-200 font-medium rounded-lg px-6 py-3;
   }
 
   .btn-outline {
-    @apply border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-gray-500 rounded-lg px-6 py-3;
+    @apply bg-transparent border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-neutral-400 focus:ring-2 focus:ring-neutral-200 focus:ring-offset-2 transition-all duration-200 font-medium rounded-lg px-6 py-3;
+  }
+
+  .btn-secondary-outline {
+    @apply bg-transparent border border-secondary text-secondary hover:bg-secondary/10 focus:ring-2 focus:ring-secondary/20 focus:ring-offset-2 transition-all duration-200 font-medium rounded-lg px-6 py-3;
   }
 
   .btn-text {
-    @apply bg-transparent text-blue-600 hover:text-blue-700 hover:bg-blue-50 focus:ring-blue-500 rounded-lg px-6 py-3;
+    @apply bg-transparent text-primary hover:bg-primary/10 focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 transition-all duration-200 font-medium rounded-lg px-6 py-3;
   }
 
-  /* Card System */
-  .card {
-    @apply bg-white border border-gray-200 rounded-xl shadow-sm;
-  }
-
+  /* Material Design Cards */
   .card-elevated {
-    @apply bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200;
+    @apply bg-white text-neutral-900 border border-neutral-200 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl;
   }
 
-  .card-interactive {
-    @apply bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer;
+  .card-outlined {
+    @apply bg-white text-neutral-900 border border-neutral-200 rounded-xl;
   }
 
-  /* Input System */
-  .input {
-    @apply w-full px-4 py-3 bg-white border border-gray-300 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-400;
+  .card-fab {
+    @apply bg-primary text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center;
   }
 
-  .input-error {
-    @apply border-red-300 focus:ring-red-500 focus:border-red-500;
+  /* Material Design Inputs */
+  .input-field {
+    @apply bg-white text-neutral-900 border border-neutral-300 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 transition-all duration-200 placeholder:text-neutral-500 rounded-lg px-4 py-3;
   }
 
-  /* Badge System */
-  .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-  }
-
+  /* Material Design Badges */
   .badge-primary {
-    @apply bg-blue-100 text-blue-700;
+    @apply bg-primary/10 text-primary border border-primary/20 rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
 
   .badge-secondary {
-    @apply bg-gray-100 text-gray-700;
+    @apply bg-secondary/10 text-secondary border border-secondary/20 rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
 
-  .badge-success {
-    @apply bg-green-100 text-green-700;
-  }
-
-  .badge-warning {
-    @apply bg-yellow-100 text-yellow-700;
-  }
-
-  .badge-error {
-    @apply bg-red-100 text-red-700;
+  .badge-neutral {
+    @apply bg-neutral-100 text-neutral-700 border border-neutral-200 rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
 
   /* Layout System */
@@ -273,28 +259,6 @@
 
   .section-lg {
     @apply py-24 md:py-32 lg:py-40;
-  }
-
-  /* Grid System */
-  .grid-auto-fit {
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  }
-
-  .grid-auto-fill {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  }
-
-  /* Spacing Utilities */
-  .space-y-section > * + * {
-    @apply mt-16 md:mt-24 lg:mt-32;
-  }
-
-  .space-y-section-sm > * + * {
-    @apply mt-8 md:mt-12 lg:mt-16;
-  }
-
-  .space-y-section-lg > * + * {
-    @apply mt-24 md:mt-32 lg:mt-40;
   }
 
   /* Animation System */
@@ -333,12 +297,12 @@
 
   /* Focus States */
   .focus-visible {
-    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
   }
 
   /* Selection */
   ::selection {
-    @apply bg-blue-100 text-blue-900;
+    @apply bg-primary/20 text-primary-900;
   }
 
   /* Text Balance */
@@ -386,15 +350,15 @@
 
   /* Custom Utilities */
   .bg-gradient-subtle {
-    background: linear-gradient(135deg, hsl(var(--color-gray-50)) 0%, hsl(var(--color-gray-100)) 100%);
+    background: linear-gradient(135deg, hsl(var(--color-neutral-50)) 0%, hsl(var(--color-neutral-100)) 100%);
   }
 
   .bg-gradient-primary {
-    background: linear-gradient(135deg, hsl(var(--color-blue-600)) 0%, hsl(var(--color-blue-700)) 100%);
+    background: linear-gradient(135deg, hsl(var(--color-primary-600)) 0%, hsl(var(--color-primary-700)) 100%);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, hsl(var(--color-blue-600)) 0%, hsl(var(--color-blue-800)) 100%);
+    background: linear-gradient(135deg, hsl(var(--color-primary-600)) 0%, hsl(var(--color-primary-800)) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
