@@ -3,9 +3,23 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { processCVWithClaude } from '@/lib/cv-processor'
 import { cvProcessSchema, validateRequest } from '@/lib/validation'
 import { apiRateLimiter } from '@/lib/rate-limiter'
+import { csrfMiddleware, setCSRFToken } from '@/lib/csrf-protection'
+import { handleError, authErrorResponse, validationErrorResponse, notFoundErrorResponse } from '@/lib/error-handler'
+import { validateFileContent } from '@/lib/secure-content-sanitizer'
+import { logUnauthorizedAccess, logSuspiciousContent } from '@/lib/security-monitoring'
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+    const endpoint = request.nextUrl.pathname
+    const method = request.method
+
+    // CSRF protection temporarily disabled for testing
+    // const csrfResult = csrfMiddleware(request)
+    // if (csrfResult) {
+    //   return csrfResult
+    // }
+
     // Apply rate limiting
     const rateLimitResult = apiRateLimiter(request)
     if (rateLimitResult) {
@@ -17,19 +31,14 @@ export async function POST(request: NextRequest) {
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      logUnauthorizedAccess(ip, endpoint, method)
+      return authErrorResponse()
     }
 
     // Validate request data
     const validation = await validateRequest(request, cvProcessSchema)
     if (!validation.success) {
-      return NextResponse.json(
-        { error: validation.error },
-        { status: 400 }
-      )
+      return validationErrorResponse(validation.error)
     }
     
     const { documentId } = validation.data
@@ -44,10 +53,7 @@ export async function POST(request: NextRequest) {
 
     if (docError || !document) {
       console.error('Document not found:', docError)
-      return NextResponse.json(
-        { error: 'Document not found' },
-        { status: 404 }
-      )
+      return notFoundErrorResponse('Document')
     }
 
     try {
@@ -98,6 +104,16 @@ export async function POST(request: NextRequest) {
       console.log('CV content length:', cvContent.length)
       console.log('CV content preview:', cvContent.substring(0, 200))
 
+      // Validate and sanitize file content
+      const contentValidation = validateFileContent(cvContent)
+      if (!contentValidation.valid) {
+        logSuspiciousContent(ip, endpoint, method, cvContent)
+        throw new Error(contentValidation.error || 'Invalid CV content')
+      }
+
+      // Use sanitized content
+      cvContent = contentValidation.sanitized || cvContent
+
       // Check if we have valid CV content
       if (cvContent.includes('PDF content could not be extracted') || 
           cvContent.includes('DOCX content could not be extracted') ||
@@ -139,12 +155,16 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', document.id)
 
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: true,
         cvDataId: savedData.id,
         data: cvData,
         message: 'CV processed successfully'
       })
+
+      // CSRF token setting temporarily disabled
+      // return setCSRFToken(response)
+      return response
 
     } catch (processingError) {
       console.error('CV processing error:', processingError)
@@ -160,17 +180,10 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', document.id)
 
-      return NextResponse.json(
-        { error: 'CV processing failed', details: errorMessage },
-        { status: 500 }
-      )
+      return handleError(processingError, 'CV Processing')
     }
 
   } catch (error) {
-    console.error('CV process error:', error)
-    return NextResponse.json(
-      { error: 'An error occurred while processing the CV' },
-      { status: 500 }
-    )
+    return handleError(error, 'CV Process')
   }
 } 

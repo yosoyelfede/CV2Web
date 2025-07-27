@@ -2,28 +2,43 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { generateWebsiteWithClaude, createCompleteHTMLFile } from '@/lib/website-generator'
 import { websiteGenerationSchema, validateRequest } from '@/lib/validation'
-import { sanitizeWebsiteContent } from '@/lib/content-sanitizer'
+import { sanitizeWebsiteContent } from '@/lib/secure-content-sanitizer'
+import { apiRateLimiter } from '@/lib/rate-limiter'
+import { csrfMiddleware, setCSRFToken } from '@/lib/csrf-protection'
+import { handleError, authErrorResponse, validationErrorResponse, notFoundErrorResponse } from '@/lib/error-handler'
+import { logUnauthorizedAccess } from '@/lib/security-monitoring'
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+    const endpoint = request.nextUrl.pathname
+    const method = request.method
+
+    // CSRF protection temporarily disabled for testing
+    // const csrfResult = csrfMiddleware(request)
+    // if (csrfResult) {
+    //   return csrfResult
+    // }
+
+    // Apply rate limiting
+    const rateLimitResult = apiRateLimiter(request)
+    if (rateLimitResult) {
+      return rateLimitResult
+    }
+
     const supabase = createServerSupabaseClient()
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      logUnauthorizedAccess(ip, endpoint, method)
+      return authErrorResponse()
     }
 
     // Validate request data
     const validation = await validateRequest(request, websiteGenerationSchema)
     if (!validation.success) {
-      return NextResponse.json(
-        { error: validation.error },
-        { status: 400 }
-      )
+      return validationErrorResponse(validation.error)
     }
     
     const { cvDataId, config } = validation.data
@@ -36,10 +51,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (cvError || !cvData) {
-      return NextResponse.json(
-        { error: 'CV data not found' },
-        { status: 404 }
-      )
+      return notFoundErrorResponse('CV data')
     }
 
     // Verify the CV document belongs to the user
@@ -50,10 +62,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (docError || !cvDocument || cvDocument.user_id !== user.id) {
-      return NextResponse.json(
-        { error: 'CV data not found or access denied' },
-        { status: 404 }
-      )
+      return notFoundErrorResponse('CV data')
     }
 
     // Website generation logic using Claude
@@ -75,7 +84,7 @@ export async function POST(request: NextRequest) {
     const generatedWebsite = await generateWebsiteWithClaude(cvData, websiteConfig)
     console.log('Website generated successfully')
 
-    // Sanitize generated content
+    // Sanitize generated content using the new sanitizer
     const sanitizedContent = sanitizeWebsiteContent({
       html: generatedWebsite.html,
       css: generatedWebsite.css,
@@ -113,23 +122,20 @@ export async function POST(request: NextRequest) {
 
     if (websiteError) {
       console.error('Website creation error:', websiteError)
-      return NextResponse.json(
-        { error: 'Website creation failed', details: websiteError.message },
-        { status: 500 }
-      )
+      return handleError(websiteError, 'Website Creation')
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       websiteId: website.id,
       message: 'Website generation initiated'
     })
 
+    // CSRF token setting temporarily disabled
+    // return setCSRFToken(response)
+    return response
+
   } catch (error) {
-    console.error('Website generation error:', error)
-    return NextResponse.json(
-      { error: 'An error occurred while generating the website' },
-      { status: 500 }
-    )
+    return handleError(error, 'Website Generation')
   }
 } 

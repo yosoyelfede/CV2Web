@@ -4,10 +4,7 @@ const nextConfig = {
     domains: ['localhost', 'cv2w.com'],
     formats: ['image/webp', 'image/avif'],
   },
-  env: {
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-  },
+  // Remove exposed environment variables - they should be accessed directly
   async headers() {
     return [
       {
@@ -44,6 +41,14 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), payment=()',
+          },
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'off',
+          },
+          {
+            key: 'X-Download-Options',
+            value: 'noopen',
           },
         ],
       },

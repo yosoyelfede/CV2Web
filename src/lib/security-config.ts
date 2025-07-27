@@ -16,6 +16,15 @@ export const securityConfig = {
     }
   },
 
+  // Redis configuration
+  redis: {
+    url: process.env.REDIS_URL || 'redis://localhost:6379',
+    retryDelayOnFailover: 100,
+    maxRetriesPerRequest: 3,
+    enableReadyCheck: true,
+    lazyConnect: true
+  },
+
   // File upload security
   fileUpload: {
     maxSize: 10 * 1024 * 1024, // 10MB
@@ -25,7 +34,27 @@ export const securityConfig = {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'text/plain'
     ],
-    allowedExtensions: ['.doc', '.docx', '.txt']
+    allowedExtensions: ['.doc', '.docx', '.txt'],
+    // Add content validation
+    validateContent: true,
+    maxContentLength: 1000000, // 1MB content limit
+    // File signature validation
+    validateSignature: true,
+    signatures: {
+      'application/pdf': [0x25, 0x50, 0x44, 0x46], // %PDF
+      'application/msword': [0xD0, 0xCF, 0x11, 0xE0], // DOC
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': [0x50, 0x4B, 0x03, 0x04], // DOCX
+      'text/plain': [] // No signature for text files
+    }
+  },
+
+  // CSRF Protection
+  csrf: {
+    enabled: false, // Temporarily disabled for testing - will be re-enabled with proper frontend implementation
+    tokenLength: 32,
+    cookieName: 'csrf-token',
+    headerName: 'X-CSRF-Token',
+    ignoreMethods: ['GET', 'HEAD', 'OPTIONS']
   },
 
   // Content Security Policy
@@ -49,7 +78,10 @@ export const securityConfig = {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     secure: true,
     httpOnly: true,
-    sameSite: 'strict'
+    sameSite: 'strict',
+    // Add additional security
+    rolling: true,
+    name: 'cv2w-session'
   },
 
   // API security
@@ -80,7 +112,17 @@ export const securityConfig = {
     'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
     'X-XSS-Protection': '1; mode=block',
     'X-Permitted-Cross-Domain-Policies': 'none',
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()'
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+    // Add additional headers
+    'X-DNS-Prefetch-Control': 'off',
+    'X-Download-Options': 'noopen'
+  },
+
+  // Error handling
+  errorHandling: {
+    // Don't expose internal errors in production
+    exposeErrors: process.env.NODE_ENV !== 'production',
+    genericErrorMessage: 'An error occurred. Please try again later.'
   }
 }
 
@@ -91,7 +133,7 @@ export function buildCSPHeader(): string {
     .join('; ')
 }
 
-// Helper function to validate file upload
+// Enhanced file upload validation with signature checking
 export function validateFileUpload(file: File): { valid: boolean; error?: string } {
   // Check file size
   if (file.size > securityConfig.fileUpload.maxSize) {
@@ -119,4 +161,37 @@ export function validateFileUpload(file: File): { valid: boolean; error?: string
   }
 
   return { valid: true }
+}
+
+// Validate file signature (file magic numbers)
+export async function validateFileSignature(file: File): Promise<{ valid: boolean; error?: string }> {
+  if (!securityConfig.fileUpload.validateSignature) {
+    return { valid: true }
+  }
+
+  const expectedSignature = securityConfig.fileUpload.signatures[file.type as keyof typeof securityConfig.fileUpload.signatures]
+  if (!expectedSignature || expectedSignature.length === 0) {
+    return { valid: true } // No signature to validate
+  }
+
+  try {
+    const buffer = await file.arrayBuffer()
+    const uint8Array = new Uint8Array(buffer)
+    
+    for (let i = 0; i < expectedSignature.length; i++) {
+      if (uint8Array[i] !== expectedSignature[i]) {
+        return {
+          valid: false,
+          error: 'File signature validation failed. File may be corrupted or of wrong type.'
+        }
+      }
+    }
+    
+    return { valid: true }
+  } catch (error) {
+    return {
+      valid: false,
+      error: 'Unable to validate file signature.'
+    }
+  }
 } 

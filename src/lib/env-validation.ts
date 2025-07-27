@@ -7,6 +7,10 @@ export function validateEnvironmentVariables() {
     'VERCEL_TOKEN'
   ]
 
+  const optionalVars = [
+    'REDIS_URL'
+  ]
+
   const missingVars: string[] = []
 
   for (const varName of requiredVars) {
@@ -35,6 +39,17 @@ export function validateEnvironmentVariables() {
 
   if (process.env.VERCEL_TOKEN!.length < 20) {
     throw new Error('Invalid VERCEL_TOKEN format')
+  }
+
+  // Validate Redis URL if provided
+  if (process.env.REDIS_URL) {
+    try {
+      new URL(process.env.REDIS_URL)
+    } catch {
+      throw new Error('Invalid REDIS_URL format')
+    }
+  } else {
+    console.warn('⚠️  REDIS_URL not set. Rate limiting will use in-memory storage (not recommended for production)')
   }
 
   console.log('✅ All environment variables validated successfully')
