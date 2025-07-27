@@ -64,45 +64,32 @@ export async function POST(request: NextRequest) {
       let cvContent: string
       
       if (document.mime_type === 'application/pdf') {
-        // For PDF files, we need to use the enhanced extraction
-        const { extractTextFromPDF } = await import('@/lib/cv-processor')
-        const arrayBuffer = await fileData.arrayBuffer()
-        const data = new Uint8Array(arrayBuffer)
-        
-        // Use pdf-parse directly here since we're in a server environment
-        const pdfParse = require('pdf-parse')
-        const result = await pdfParse(data)
-        cvContent = result.text
+        // For PDF files, use the updated extraction function
+        const { extractTextFromPDF } = require('@/lib/cv-processor')
+        // Convert Blob to File for the extraction function
+        const file = new File([fileData], document.file_name || 'document.pdf', { type: document.mime_type })
+        cvContent = await extractTextFromPDF(file)
       } else if (document.mime_type.includes('word') || document.mime_type.includes('docx')) {
-        // For DOCX files, we need to use the enhanced extraction
-        const { extractTextFromDOCX } = await import('@/lib/cv-processor')
-        const arrayBuffer = await fileData.arrayBuffer()
-        
-        // Use docx library directly here since we're in a server environment
-        const { Document } = require('docx')
-        const doc = new Document(arrayBuffer)
-        
-        // Extract text from all paragraphs
-        let text = ''
-        for (const section of doc.sections) {
-          for (const paragraph of section.children) {
-            if (paragraph.children) {
-              for (const run of paragraph.children) {
-                if (run.text) {
-                  text += run.text + ' '
-                }
-              }
-            }
-            text += '\n'
-          }
-        }
-        cvContent = text.trim()
+        // For DOCX files, use the updated extraction function
+        const { extractTextFromDOCX } = require('@/lib/cv-processor')
+        // Convert Blob to File for the extraction function
+        const file = new File([fileData], document.file_name || 'document.docx', { type: document.mime_type })
+        cvContent = await extractTextFromDOCX(file)
       } else {
         // For text files, use the standard text extraction
         cvContent = await fileData.text()
       }
       
       console.log('CV content length:', cvContent.length)
+      console.log('CV content preview:', cvContent.substring(0, 200))
+
+      // Check if we have valid CV content
+      if (cvContent.includes('PDF content could not be extracted') || 
+          cvContent.includes('DOCX content could not be extracted') ||
+          cvContent.includes('Since no CV content could be extracted') ||
+          cvContent.length < 50) {
+        throw new Error('Invalid CV content. Please try uploading a different file or format.')
+      }
 
       // Process CV with Claude
       console.log('Processing CV with Claude...')

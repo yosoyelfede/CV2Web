@@ -106,50 +106,7 @@ export interface WebsiteConfig {
   }
 }
 
-// Processing Job types
-export interface ProcessingJob {
-  id: string
-  user_id: string
-  job_type: 'cv_processing' | 'website_generation' | 'deployment'
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  input_data?: any
-  output_data?: any
-  error_message?: string
-  started_at?: string
-  completed_at?: string
-  created_at: string
-}
 
-// API Response types
-export interface APIResponse<T> {
-  data?: T
-  error?: {
-    code: string
-    message: string
-    details?: any
-  }
-}
-
-// Form types
-export interface CVUploadForm {
-  files: File[]
-  options: {
-    extract_images: boolean
-    preserve_formatting: boolean
-    language: 'auto' | 'en' | 'es' | 'fr' | 'de'
-  }
-}
-
-export interface WebsiteGenerationForm {
-  cv_data_id: string
-  template: WebsiteConfig['template']
-  customization: {
-    color_scheme: WebsiteConfig['color_scheme']
-    font_family: WebsiteConfig['font_family']
-    layout: WebsiteConfig['layout']
-  }
-  features: WebsiteConfig['features']
-}
 
 // UI Component types
 export interface ButtonProps {
@@ -163,41 +120,4 @@ export interface ButtonProps {
   className?: string
 }
 
-export interface CardProps {
-  title?: string
-  description?: string
-  children: React.ReactNode
-  className?: string
-  onClick?: () => void
-  hover?: boolean
-}
-
-export interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title?: string
-  children: React.ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl'
-}
-
-// Navigation types
-export interface NavItem {
-  label: string
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  badge?: string | number
-}
-
-// Dashboard stats
-export interface DashboardStats {
-  total_cvs: number
-  processed_cvs: number
-  total_websites: number
-  live_websites: number
-  processing_jobs: number
-  recent_activity: {
-    type: 'cv_upload' | 'website_generated' | 'deployment'
-    message: string
-    timestamp: string
-  }[]
-} 
+ 

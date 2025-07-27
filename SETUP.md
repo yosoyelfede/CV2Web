@@ -20,7 +20,7 @@ VERCEL_TEAM_ID=your_vercel_team_id
 ## Database Setup
 
 1. Create a Supabase project at https://supabase.com
-2. Go to the SQL Editor in your Supabase dashboard
+2. Go to the SQL Editor in your Supabase project
 3. Run the SQL commands from `supabase/schema-complete.sql` (this handles existing tables)
 4. Create a storage bucket named `cv-documents` with the following settings:
    - Public bucket: false
@@ -30,7 +30,7 @@ VERCEL_TEAM_ID=your_vercel_team_id
 
 ## Storage Bucket Setup
 
-In your Supabase dashboard:
+In your Supabase project:
 
 1. Go to Storage
 2. Create a new bucket called `cv-documents`
@@ -45,7 +45,7 @@ In your Supabase dashboard:
 3. Add it to your `.env.local` file
 
 ### Supabase Keys
-1. In your Supabase project dashboard
+1. In your Supabase project
 2. Go to Settings > API
 3. Copy the Project URL and anon public key
 4. Add them to your `.env.local` file

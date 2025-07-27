@@ -67,12 +67,12 @@ The application is now ready for testing with the following capabilities:
 
 3. **Test CV upload:**
    - Create a simple TXT file with CV content
-   - Upload it through the dashboard
+   - Upload it through the application
    - Check the processing status
    - Verify extracted data
 
 4. **Check database:**
-   - Go to Supabase Dashboard > Table Editor
+   - Go to Supabase Project > Table Editor
    - Verify data is being stored in cv_documents and cv_data tables
 
 ## 🚀 Next Steps (Phase 2)

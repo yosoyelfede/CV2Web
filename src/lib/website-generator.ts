@@ -313,7 +313,23 @@ function getFallbackCSS(config: WebsiteConfig): string {
 }
 
 export function createCompleteHTMLFile(website: GeneratedWebsite): string {
-  return `<!DOCTYPE html>
+  // Check if the generated HTML already contains a complete HTML document
+  if (website.html.trim().startsWith('<!DOCTYPE html>') || website.html.trim().startsWith('<html')) {
+    // If it's already a complete HTML document, just add the CSS and JS to it
+    const htmlWithStyles = website.html.replace(
+      '</head>',
+      `<style>${website.css}</style></head>`
+    )
+    
+    const htmlWithScripts = htmlWithStyles.replace(
+      '</body>',
+      `<script>${website.javascript}</script></body>`
+    )
+    
+    return htmlWithScripts
+  } else {
+    // If it's just body content, wrap it in a complete HTML document
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -332,4 +348,5 @@ export function createCompleteHTMLFile(website: GeneratedWebsite): string {
     </script>
 </body>
 </html>`
+  }
 } 

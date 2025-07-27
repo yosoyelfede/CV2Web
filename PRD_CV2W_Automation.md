@@ -423,10 +423,9 @@ cv2w-automation/
 │   │   ├── (auth)/
 │   │   │   ├── login/
 │   │   │   └── register/
-│   │   ├── dashboard/
-│   │   │   ├── cv-upload/
-│   │   │   ├── processing/
-│   │   │   └── websites/
+│   │   ├── cv-upload/
+│   │   ├── websites/
+│   │   └── profile/
 │   │   ├── api/
 │   │   │   ├── auth/
 │   │   │   ├── cv/
@@ -867,9 +866,9 @@ graph TB
 - **Priority Level**: High
 
 **Task ID: FE-003**
-- **Name**: Dashboard and Navigation
-- **Description**: Build main dashboard with CV management and website generation
-- **Acceptance Criteria**: List CVs, processing status, website management
+- **Name**: CV Management Interface
+- **Description**: Build CV upload and management interface
+- **Acceptance Criteria**: CV upload, processing status, data management
 - **Dependencies**: FE-001, FE-002
 - **Effort Estimate**: L
 - **Required Skills**: React, State Management, API Integration

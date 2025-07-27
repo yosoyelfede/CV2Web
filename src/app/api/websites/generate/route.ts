@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         cv_data_id: cvData.id,
         name: `${cvData.personal_info.name}'s Portfolio`,
         description: `Professional portfolio website for ${cvData.personal_info.name}`,
-        deployment_status: 'completed',
+        deployment_status: 'live',
         website_config: websiteConfig,
         generated_code: {
           html: generatedWebsite.html,

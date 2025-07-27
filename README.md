@@ -10,7 +10,7 @@ A modern, responsive frontend for the CV-to-Website automation system. Built wit
 - **Interactive Upload**: Drag-and-drop CV file upload with validation
 - **Website Preview**: Real-time preview using Claude Artifacts
 - **Authentication**: Secure user authentication with Supabase
-- **Dashboard**: Comprehensive dashboard for managing CVs and websites
+- **CV Management**: Upload and process CVs with AI
 - **Batch Processing**: Handle multiple CVs simultaneously
 - **Quality Assurance**: Human-supervised workflows with automated testing
 
@@ -66,7 +66,6 @@ A modern, responsive frontend for the CV-to-Website automation system. Built wit
 src/
 ├── app/                    # Next.js App Router
 │   ├── (auth)/            # Authentication routes
-│   ├── dashboard/         # Dashboard routes
 │   ├── api/              # API routes
 │   ├── globals.css       # Global styles
 │   ├── layout.tsx        # Root layout

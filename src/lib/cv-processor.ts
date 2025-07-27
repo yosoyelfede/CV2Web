@@ -2,30 +2,7 @@ import { claude, CLAUDE_MODEL, RETRY_CONFIG, calculateDelay } from './claude'
 import { CV_PROCESSING_SYSTEM_PROMPT, createCVProcessingPrompt } from './prompts'
 import { CVData, PersonalInfo, Experience, Education, Skills } from '@/types'
 
-// File processing utilities
-export async function extractTextFromFile(file: File): Promise<string> {
-  const fileType = file.type
-  const fileName = file.name.toLowerCase()
 
-  try {
-    if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
-      return await file.text()
-    }
-
-    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-      return await extractTextFromPDF(file)
-    }
-
-    if (fileType.includes('word') || fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
-      return await extractTextFromDOCX(file)
-    }
-
-    throw new Error(`Unsupported file type: ${fileType}`)
-  } catch (error) {
-    console.error('Error extracting text from file:', error)
-    throw error
-  }
-}
 
 // PDF text extraction
 export async function extractTextFromPDF(file: File): Promise<string> {
@@ -33,15 +10,33 @@ export async function extractTextFromPDF(file: File): Promise<string> {
     // Convert file to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer()
     
-    // Use pdf-parse to extract text
-    const pdfParse = require('pdf-parse')
-    const data = new Uint8Array(arrayBuffer)
+    // Use pdfjs-dist with ES module import for the new version
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
     
-    const result = await pdfParse(data)
-    return result.text
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) })
+    const pdf = await loadingTask.promise
+    
+    let fullText = ''
+    
+    // Extract text from each page
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum)
+      const textContent = await page.getTextContent()
+      
+      // Combine text items
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ')
+      
+      fullText += pageText + '\n'
+    }
+    
+    return fullText.trim() || 'No text content found in PDF'
   } catch (error) {
     console.error('PDF parsing error:', error)
-    throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    // Return a fallback message instead of throwing
+    return 'PDF content could not be extracted. Please try uploading a different file format.'
   }
 }
 
@@ -51,29 +46,17 @@ export async function extractTextFromDOCX(file: File): Promise<string> {
     // Convert file to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer()
     
-    // Use docx library to extract text
-    const { Document } = require('docx')
-    const doc = new Document(arrayBuffer)
+    // Use mammoth.js to extract text from DOCX
+    const mammoth = require('mammoth')
     
-    // Extract text from all paragraphs
-    let text = ''
-    for (const section of doc.sections) {
-      for (const paragraph of section.children) {
-        if (paragraph.children) {
-          for (const run of paragraph.children) {
-            if (run.text) {
-              text += run.text + ' '
-            }
-          }
-        }
-        text += '\n'
-      }
-    }
-    
-    return text.trim()
+    // For Node.js environment, use buffer instead of arrayBuffer
+    const buffer = Buffer.from(arrayBuffer)
+    const result = await mammoth.extractRawText({ buffer })
+    return result.value.trim() || 'No text content found in DOCX'
   } catch (error) {
     console.error('DOCX parsing error:', error)
-    throw new Error(`Failed to parse DOCX: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    // Return a fallback message instead of throwing
+    return 'DOCX content could not be extracted. Please try uploading a different file format.'
   }
 }
 
@@ -122,7 +105,37 @@ export async function processCVWithClaude(cvContent: string): Promise<CVData> {
     }
   }
 
-  throw new Error(`CV processing failed after ${RETRY_CONFIG.maxRetries} attempts. Last error: ${lastError?.message}`)
+  // If all attempts failed, return a basic CV structure with error information
+  console.error(`CV processing failed after ${RETRY_CONFIG.maxRetries} attempts. Returning fallback data.`)
+  
+  return {
+    id: '',
+    cv_document_id: '',
+    personal_info: {
+      name: 'CV Processing Failed',
+      email: 'N/A',
+      phone: undefined,
+      location: undefined,
+      linkedin: undefined,
+      website: undefined,
+      summary: 'CV processing failed. Please try uploading a different file format or check if the file is corrupted.',
+    },
+    experience: [],
+    education: [],
+    skills: {
+      technical: [],
+      soft_skills: [],
+      languages: [],
+      certifications: [],
+    },
+    metadata: {
+      processing_status: 'failed',
+      error_message: lastError?.message || 'Unknown error',
+      extracted_at: new Date().toISOString(),
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
 }
 
 // Data validation
@@ -195,67 +208,4 @@ export function validateCVData(data: any): CVData {
   }
 }
 
-// Processing job utilities
-export async function createProcessingJob(
-  supabase: any,
-  userId: string,
-  jobType: 'cv_processing' | 'website_generation' | 'deployment',
-  inputData?: any
-) {
-  const { data, error } = await supabase
-    .from('processing_jobs')
-    .insert({
-      user_id: userId,
-      job_type: jobType,
-      status: 'pending',
-      input_data: inputData,
-    })
-    .select()
-    .single()
-
-  if (error) {
-    throw error
-  }
-
-  return data
-}
-
-export async function updateProcessingJob(
-  supabase: any,
-  jobId: string,
-  status: 'pending' | 'processing' | 'completed' | 'failed',
-  outputData?: any,
-  errorMessage?: string
-) {
-  const updateData: any = {
-    status,
-    updated_at: new Date().toISOString(),
-  }
-
-  if (status === 'processing') {
-    updateData.started_at = new Date().toISOString()
-  } else if (status === 'completed' || status === 'failed') {
-    updateData.completed_at = new Date().toISOString()
-  }
-
-  if (outputData) {
-    updateData.output_data = outputData
-  }
-
-  if (errorMessage) {
-    updateData.error_message = errorMessage
-  }
-
-  const { data, error } = await supabase
-    .from('processing_jobs')
-    .update(updateData)
-    .eq('id', jobId)
-    .select()
-    .single()
-
-  if (error) {
-    throw error
-  }
-
-  return data
-} 
+ 

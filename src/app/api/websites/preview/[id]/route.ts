@@ -34,7 +34,7 @@ export async function GET(
       )
     }
 
-    if (website.deployment_status !== 'completed') {
+    if (website.deployment_status !== 'live') {
       return NextResponse.json(
         { error: 'Website generation not completed' },
         { status: 400 }
