@@ -36,7 +36,7 @@ export default function RegisterPage() {
         setError(error.message)
       } else {
         // Show success message or redirect
-        router.push('/login?message=Check your email to confirm your account')
+        router.push('/login?message=Registration successful! Please check your email to confirm your account before signing in.')
       }
     } catch (err) {
       setError('An unexpected error occurred')

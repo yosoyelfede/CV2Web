@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { GoogleSignInButton } from '@/components/ui/google-signin-button'
@@ -11,8 +11,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  useEffect(() => {
+    const message = searchParams.get('message')
+    if (message) {
+      setSuccessMessage(message)
+    }
+  }, [searchParams])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,7 +35,16 @@ export default function LoginPage() {
       })
 
       if (error) {
-        setError(error.message)
+        // Provide more specific error messages
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. If you just registered, please check your email to confirm your account.')
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Please check your email and click the confirmation link before signing in.')
+        } else if (error.message.includes('Too many requests')) {
+          setError('Too many login attempts. Please wait a few minutes before trying again.')
+        } else {
+          setError(error.message)
+        }
       } else {
         router.push('/')
         router.refresh()
@@ -84,6 +102,12 @@ export default function LoginPage() {
                 Sign in to your account to continue
               </p>
             </div>
+
+            {successMessage && (
+              <div className="p-3 bg-success/10 border border-success/20 rounded-lg mb-6">
+                <p className="text-body-small text-success">{successMessage}</p>
+              </div>
+            )}
 
             <form onSubmit={handleSignIn} className="space-y-6">
               {error && (
