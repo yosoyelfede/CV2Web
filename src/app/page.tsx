@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Workflow from '@/components/features/workflow/workflow'
+import { LogoutButton } from '@/components/ui/logout-button'
 
 export default async function HomePage() {
   const supabase = createServerSupabaseClient()
@@ -24,11 +25,9 @@ export default async function HomePage() {
             {user ? (
               <div className="flex items-center space-x-6">
                 <span className="text-sm text-gray-600">Welcome, {user.email}</span>
-                <form action="/auth/signout" method="post">
-                  <button type="submit" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                    Sign out
-                  </button>
-                </form>
+                <LogoutButton className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  Sign out
+                </LogoutButton>
               </div>
             ) : (
               <div className="flex items-center space-x-6">

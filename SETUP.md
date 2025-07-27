@@ -12,6 +12,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 # Anthropic API Configuration
 ANTHROPIC_API_KEY=your_anthropic_api_key
 
+# Google OAuth Configuration (for Google Sign-In)
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
 # Optional: Vercel Configuration (for Phase 4)
 VERCEL_TOKEN=your_vercel_token
 VERCEL_TEAM_ID=your_vercel_team_id
@@ -49,6 +53,20 @@ In your Supabase project:
 2. Go to Settings > API
 3. Copy the Project URL and anon public key
 4. Add them to your `.env.local` file
+
+### Google OAuth Setup
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the Google+ API
+4. Go to Credentials > Create Credentials > OAuth 2.0 Client IDs
+5. Set the application type to "Web application"
+6. Add authorized redirect URIs:
+   - `https://your-project.supabase.co/auth/v1/callback`
+   - `http://localhost:3000/auth/callback` (for development)
+7. Copy the Client ID and Client Secret
+8. Add them to your `.env.local` file
+9. In your Supabase project, go to Authentication > Providers
+10. Enable Google provider and add your Client ID and Client Secret
 
 ## Development
 

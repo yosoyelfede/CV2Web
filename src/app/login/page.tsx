@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
+import { GoogleSignInButton } from '@/components/ui/google-signin-button'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -127,6 +128,36 @@ export default function LoginPage() {
                 {loading ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
+
+            <div className="mt-8">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border/50" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-4 text-muted-foreground font-medium">Or continue with</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8">
+              <div className="text-center mb-4">
+                <p className="text-sm text-muted-foreground mb-2">Quick and secure sign-in</p>
+              </div>
+              <GoogleSignInButton
+                onError={(error) => setError(error)}
+                onSuccess={() => {
+                  router.push('/')
+                  router.refresh()
+                }}
+                className="mb-4"
+              />
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground">
+                  By continuing, you agree to our Terms of Service and Privacy Policy
+                </p>
+              </div>
+            </div>
 
             <div className="mt-8 text-center">
               <p className="body-medium text-muted-foreground">

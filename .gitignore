@@ -2,3 +2,7 @@
 .next/
 node_modules/
 *.txt
+
+# Google OAuth credentials
+client_secret_*.json
+client_secret_*.js
