@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -18,132 +18,127 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    } else {
-      router.push('/')
-      router.refresh()
-    }
-  }
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
-      },
-    })
-
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    } else {
-      setError('Check your email for the confirmation link!')
+      if (error) {
+        setError(error.message)
+      } else {
+        router.push('/')
+        router.refresh()
+      }
+    } catch (err) {
+      setError('An unexpected error occurred')
+    } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-indigo-100">
-            <svg className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-              create a new account
-            </Link>
-          </p>
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/20" />
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-primary/10 to-primary/5 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-secondary/10 to-secondary/5 rounded-full blur-3xl animate-float-slow" />
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSignIn}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">{error}</div>
-            </div>
-          )}
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <Link href="/" className="font-medium text-indigo-600 hover:text-indigo-500">
-                Back to home
-              </Link>
-            </div>
-            <div className="text-sm">
-              <button
-                type="button"
-                onClick={handleSignUp}
-                disabled={loading}
-                className="font-medium text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
-              >
-                Create account
-              </button>
-            </div>
-          </div>
-        </form>
       </div>
+
+      {/* Header */}
+      <header className="relative z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+        <div className="container-custom">
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center space-x-4">
+              <div className="relative group">
+                <div className="w-12 h-12 bg-gradient-to-r from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 floating-shadow">
+                  <span className="text-primary-foreground font-black text-lg">CV</span>
+                </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary to-primary/80 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
+              </div>
+              <span className="text-2xl font-black gradient-text">
+                CV2W
+              </span>
+            </div>
+            <a href="/register" className="btn btn-outline">
+              Sign Up
+            </a>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="relative z-20 flex items-center justify-center min-h-[calc(100vh-80px)]">
+        <div className="w-full max-w-md">
+          <div className="card card-glass p-8">
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 bg-gradient-to-r from-primary to-primary/80 rounded-full flex items-center justify-center mx-auto mb-6 animate-float floating-shadow">
+                <span className="text-2xl">🔐</span>
+              </div>
+              <h1 className="heading-2 mb-2">Welcome Back</h1>
+              <p className="body-medium text-muted-foreground">
+                Sign in to your account to continue
+              </p>
+            </div>
+
+            <form onSubmit={handleSignIn} className="space-y-6">
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="input"
+                  placeholder="Enter your email"
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="input"
+                  placeholder="Enter your password"
+                  disabled={loading}
+                />
+              </div>
+
+              <Button type="submit" className="w-full btn-primary" disabled={loading}>
+                {loading ? 'Signing In...' : 'Sign In'}
+              </Button>
+            </form>
+
+            <div className="mt-8 text-center">
+              <p className="body-medium text-muted-foreground">
+                Don't have an account?{' '}
+                <a href="/register" className="text-primary hover:text-primary/80 font-semibold transition-colors">
+                  Sign up
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   )
 } 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { generateWebsiteWithClaude, createCompleteHTMLFile } from '@/lib/website-generator'
+import { websiteGenerationSchema, validateRequest } from '@/lib/validation'
+import { sanitizeWebsiteContent } from '@/lib/content-sanitizer'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,14 +17,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { cvDataId, config } = await request.json()
-    
-    if (!cvDataId) {
+    // Validate request data
+    const validation = await validateRequest(request, websiteGenerationSchema)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'CV Data ID is required' },
+        { error: validation.error },
         { status: 400 }
       )
     }
+    
+    const { cvDataId, config } = validation.data
 
     // Get the CV data
     const { data: cvData, error: cvError } = await supabase
@@ -53,16 +57,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Website generation logic using Claude
-    const websiteConfig = config || {
-      template: 'modern',
-      color_scheme: 'blue',
-      font_family: 'inter',
-      layout: 'single_page',
+    const websiteConfig = {
+      template: config?.template || 'modern',
+      color_scheme: config?.color_scheme || 'blue',
+      font_family: config?.font_family || 'inter',
+      layout: config?.layout || 'single_page',
       features: {
-        contact_form: true,
-        social_links: true,
-        analytics: false,
-        blog: false
+        contact_form: config?.features?.contact_form ?? true,
+        social_links: config?.features?.social_links ?? true,
+        analytics: config?.features?.analytics ?? false,
+        blog: config?.features?.blog ?? false
       }
     }
 
@@ -71,8 +75,20 @@ export async function POST(request: NextRequest) {
     const generatedWebsite = await generateWebsiteWithClaude(cvData, websiteConfig)
     console.log('Website generated successfully')
 
-    // Create complete HTML file
-    const completeHTML = createCompleteHTMLFile(generatedWebsite)
+    // Sanitize generated content
+    const sanitizedContent = sanitizeWebsiteContent({
+      html: generatedWebsite.html,
+      css: generatedWebsite.css,
+      javascript: generatedWebsite.javascript
+    })
+
+    // Create complete HTML file with sanitized content
+    const completeHTML = createCompleteHTMLFile({
+      ...generatedWebsite,
+      html: sanitizedContent.html,
+      css: sanitizedContent.css,
+      javascript: sanitizedContent.javascript
+    })
 
     // Create website record
     const { data: website, error: websiteError } = await supabase
@@ -85,9 +101,9 @@ export async function POST(request: NextRequest) {
         deployment_status: 'live',
         website_config: websiteConfig,
         generated_code: {
-          html: generatedWebsite.html,
-          css: generatedWebsite.css,
-          javascript: generatedWebsite.javascript,
+          html: sanitizedContent.html,
+          css: sanitizedContent.css,
+          javascript: sanitizedContent.javascript,
           complete_html: completeHTML,
           metadata: generatedWebsite.metadata
         }
@@ -112,7 +128,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Website generation error:', error)
     return NextResponse.json(
-      { error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { error: 'An error occurred while generating the website' },
       { status: 500 }
     )
   }

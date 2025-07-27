@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { processCVWithClaude } from '@/lib/cv-processor'
+import { cvProcessSchema, validateRequest } from '@/lib/validation'
+import { apiRateLimiter } from '@/lib/rate-limiter'
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResult = apiRateLimiter(request)
+    if (rateLimitResult) {
+      return rateLimitResult
+    }
+    
     const supabase = createServerSupabaseClient()
     
     // Get the current user
@@ -15,14 +23,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { documentId } = await request.json()
-    
-    if (!documentId) {
+    // Validate request data
+    const validation = await validateRequest(request, cvProcessSchema)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Document ID is required' },
+        { error: validation.error },
         { status: 400 }
       )
     }
+    
+    const { documentId } = validation.data
 
     // Get the CV document
     const { data: document, error: docError } = await supabase
@@ -60,15 +70,20 @@ export async function POST(request: NextRequest) {
         throw downloadError
       }
 
+      // Debug file information
+      console.log('File download successful:')
+      console.log('- File type:', typeof fileData)
+      console.log('- File size:', fileData?.size)
+      console.log('- File name:', document.original_filename)
+      console.log('- File path:', document.file_path)
+      console.log('- MIME type:', document.mime_type)
+
       // Extract text from file based on file type
       let cvContent: string
       
       if (document.mime_type === 'application/pdf') {
-        // For PDF files, use the updated extraction function
-        const { extractTextFromPDF } = require('@/lib/cv-processor')
-        // Convert Blob to File for the extraction function
-        const file = new File([fileData], document.file_name || 'document.pdf', { type: document.mime_type })
-        cvContent = await extractTextFromPDF(file)
+        // PDF files are not supported
+        throw new Error('PDF files are not supported. Please upload a DOCX or TXT file instead.')
       } else if (document.mime_type.includes('word') || document.mime_type.includes('docx')) {
         // For DOCX files, use the updated extraction function
         const { extractTextFromDOCX } = require('@/lib/cv-processor')
@@ -87,7 +102,7 @@ export async function POST(request: NextRequest) {
       if (cvContent.includes('PDF content could not be extracted') || 
           cvContent.includes('DOCX content could not be extracted') ||
           cvContent.includes('Since no CV content could be extracted') ||
-          cvContent.length < 50) {
+          cvContent.length < 20) {
         throw new Error('Invalid CV content. Please try uploading a different file or format.')
       }
 
@@ -154,7 +169,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('CV process error:', error)
     return NextResponse.json(
-      { error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { error: 'An error occurred while processing the CV' },
       { status: 500 }
     )
   }

@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 interface StyleSelectorProps {
   onStyleChange?: (style: WebsiteStyle) => void
+  onContinue?: (style: WebsiteStyle) => void
 }
 
 export interface WebsiteStyle {
@@ -88,7 +89,7 @@ const layoutStyles = [
   { name: 'Professional', value: 'professional', description: 'Corporate and formal style' }
 ]
 
-export default function StyleSelector({ onStyleChange }: StyleSelectorProps) {
+export default function StyleSelector({ onStyleChange, onContinue }: StyleSelectorProps) {
   const [selectedStyle, setSelectedStyle] = useState<WebsiteStyle>({
     colors: colorSchemes[0].colors,
     typography: {
@@ -110,7 +111,7 @@ export default function StyleSelector({ onStyleChange }: StyleSelectorProps) {
   const handleStyleChange = (updates: Partial<WebsiteStyle>) => {
     const newStyle = { ...selectedStyle, ...updates }
     setSelectedStyle(newStyle)
-    onStyleChange?.(newStyle)
+    // Don't call onStyleChange immediately - let user control when to continue
   }
 
   return (
@@ -317,6 +318,18 @@ export default function StyleSelector({ onStyleChange }: StyleSelectorProps) {
           </button>
         </div>
       </div>
+
+      {/* Continue Button */}
+      {onContinue && (
+        <div className="flex justify-end pt-6 border-t border-gray-200">
+          <button
+            onClick={() => onContinue(selectedStyle)}
+            className="btn btn-primary"
+          >
+            Continue to Generate
+          </button>
+        </div>
+      )}
     </div>
   )
 } 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { WebsiteStyle } from '../style-selector/style-selector'
+import DeploymentStatus from './deployment-status'
 
 interface WebsiteGeneratorProps {
   cvDocumentId?: string
@@ -13,8 +14,10 @@ interface GeneratedWebsite {
   id: string
   name: string
   url: string
-  status: 'generating' | 'completed' | 'failed'
+  status: 'generating' | 'completed' | 'failed' | 'deploying' | 'deployed'
   preview?: string
+  deploymentUrl?: string
+  deploymentId?: string
 }
 
 export default function WebsiteGenerator({ cvDocumentId, selectedStyle }: WebsiteGeneratorProps) {
@@ -36,6 +39,9 @@ export default function WebsiteGenerator({ cvDocumentId, selectedStyle }: Websit
 
     setIsGenerating(true)
     setError(null)
+    
+    // Trigger loading animation in parent component
+    // This will be handled by the workflow component
 
     try {
       // First, get the CV data ID from the document ID
@@ -49,6 +55,28 @@ export default function WebsiteGenerator({ cvDocumentId, selectedStyle }: Websit
         throw new Error('CV data not found')
       }
 
+      // Map hex colors to enum values for API validation
+      const getColorSchemeFromHex = (hexColor: string): string => {
+        const colorMap: { [key: string]: string } = {
+          '#2563eb': 'blue',    // Professional Blue
+          '#7c3aed': 'purple',  // Creative Purple
+          '#059669': 'green',   // Modern Green
+          '#ea580c': 'orange'   // Warm Orange
+        }
+        return colorMap[hexColor] || 'blue'
+      }
+
+      const getFontFamilyFromName = (fontName: string): string => {
+        const fontMap: { [key: string]: string } = {
+          'Inter': 'inter',
+          'Roboto': 'roboto',
+          'Open Sans': 'open-sans',
+          'Poppins': 'poppins',
+          'Montserrat': 'open-sans' // Map to open-sans as fallback
+        }
+        return fontMap[fontName] || 'inter'
+      }
+
       // Call the website generation API
       const response = await fetch('/api/websites/generate', {
         method: 'POST',
@@ -59,8 +87,8 @@ export default function WebsiteGenerator({ cvDocumentId, selectedStyle }: Websit
           cvDataId: cvData.id,
           config: {
             template: selectedStyle.layout.style,
-            color_scheme: selectedStyle.colors.primary,
-            font_family: selectedStyle.typography.headingFont.toLowerCase(),
+            color_scheme: getColorSchemeFromHex(selectedStyle.colors.primary),
+            font_family: getFontFamilyFromName(selectedStyle.typography.headingFont),
             layout: 'single_page',
             features: {
               contact_form: true,
@@ -88,11 +116,47 @@ export default function WebsiteGenerator({ cvDocumentId, selectedStyle }: Websit
         preview: `/api/websites/preview/${result.websiteId}`
       })
 
+      // Automatically deploy the website
+      await handleDeployWebsite(result.websiteId)
+
     } catch (err) {
       console.error('Error generating website:', err)
       setError('Failed to generate website. Please try again.')
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handleDeployWebsite = async (websiteId: string) => {
+    try {
+      setGeneratedWebsite(prev => prev ? { ...prev, status: 'deploying' } : null)
+
+      const response = await fetch('/api/websites/deploy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ websiteId }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Deployment failed')
+      }
+
+      const result = await response.json()
+
+      setGeneratedWebsite(prev => prev ? {
+        ...prev,
+        status: 'deployed',
+        deploymentUrl: result.url,
+        deploymentId: result.deploymentId
+      } : null)
+
+    } catch (err) {
+      console.error('Error deploying website:', err)
+      setError('Failed to deploy website. Please try again.')
+      setGeneratedWebsite(prev => prev ? { ...prev, status: 'completed' } : null)
     }
   }
 
@@ -158,29 +222,56 @@ export default function WebsiteGenerator({ cvDocumentId, selectedStyle }: Websit
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl">✅</span>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Website Generated Successfully!</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              {generatedWebsite.status === 'deployed' ? 'Website Deployed Successfully!' : 'Website Generated Successfully!'}
+            </h3>
             <p className="text-gray-600 mb-6">
-              Your professional website is ready. You can view it online or download the files.
+              {generatedWebsite.status === 'deployed' 
+                ? 'Your professional website is now live and ready to share with the world!'
+                : 'Your professional website is ready. You can view it online or download the files.'
+              }
             </p>
             
             <div className="space-y-4">
               <div className="bg-white rounded-lg p-4 border">
                 <h4 className="font-semibold text-gray-900 mb-2">{generatedWebsite.name}</h4>
-                <p className="text-sm text-gray-600 mb-3">Live URL: {generatedWebsite.url}</p>
+                
+                {generatedWebsite.status === 'deployed' && generatedWebsite.deploymentUrl ? (
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-600 mb-2">Live Website URL:</p>
+                    <p className="text-sm font-mono bg-gray-100 p-2 rounded border break-all">
+                      {generatedWebsite.deploymentUrl}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-600 mb-3">Preview URL: {generatedWebsite.url}</p>
+                )}
+                
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <a
-                    href={generatedWebsite.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                  >
-                    View Live Website
-                  </a>
+                  {generatedWebsite.status === 'deployed' && generatedWebsite.deploymentUrl ? (
+                    <a
+                      href={generatedWebsite.deploymentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                    >
+                      🌐 View Live Website
+                    </a>
+                  ) : (
+                    <a
+                      href={generatedWebsite.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      👁️ Preview Website
+                    </a>
+                  )}
                   <button
                     onClick={handleDownloadWebsite}
                     className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                   >
-                    Download Files
+                    📥 Download Files
                   </button>
                 </div>
               </div>
@@ -218,6 +309,33 @@ export default function WebsiteGenerator({ cvDocumentId, selectedStyle }: Websit
             </div>
             <p className="text-sm text-gray-500 mt-2">This usually takes 2-3 minutes...</p>
           </div>
+        </div>
+      )}
+
+      {/* Deployment Progress */}
+      {generatedWebsite?.status === 'deploying' && generatedWebsite.deploymentId && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Deploying Your Website</h3>
+            <p className="text-gray-600">
+              Your website is being deployed to Vercel and will be live in a few moments.
+            </p>
+          </div>
+          <DeploymentStatus 
+            deploymentId={generatedWebsite.deploymentId}
+            onStatusChange={(status, url) => {
+              if (status === 'READY' && url) {
+                setGeneratedWebsite(prev => prev ? {
+                  ...prev,
+                  status: 'deployed',
+                  deploymentUrl: url
+                } : null)
+              } else if (status === 'ERROR') {
+                setError('Deployment failed. Please try again.')
+                setGeneratedWebsite(prev => prev ? { ...prev, status: 'completed' } : null)
+              }
+            }}
+          />
         </div>
       )}
     </div>

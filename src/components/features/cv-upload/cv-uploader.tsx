@@ -147,7 +147,7 @@ export default function CVUploader({ userId, onUploaded }: CVUploaderProps) {
                 or drag and drop
               </p>
             )}
-            <p className="text-xs text-gray-500">PDF, DOC, DOCX, or TXT up to 10MB</p>
+                            <p className="text-xs text-gray-500">DOC, DOCX, or TXT up to 10MB</p>
           </div>
         </div>
       </div>

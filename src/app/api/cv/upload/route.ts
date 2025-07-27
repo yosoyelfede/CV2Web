@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { uploadRateLimiter } from '@/lib/rate-limiter'
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResult = uploadRateLimiter(request)
+    if (rateLimitResult) {
+      return rateLimitResult
+    }
+    
     const supabase = createServerSupabaseClient()
     
     // Get the current user
@@ -34,7 +41,7 @@ export async function POST(request: NextRequest) {
     
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Invalid file type. Only PDF, DOC, DOCX, and TXT files are allowed.' },
+        { error: 'Invalid file type. Only DOC, DOCX, and TXT files are allowed.' },
         { status: 400 }
       )
     }
@@ -95,7 +102,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('CV upload error:', error)
     return NextResponse.json(
-      { error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { error: 'An error occurred while uploading the file' },
       { status: 500 }
     )
   }

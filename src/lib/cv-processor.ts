@@ -4,40 +4,9 @@ import { CVData, PersonalInfo, Experience, Education, Skills } from '@/types'
 
 
 
-// PDF text extraction
-export async function extractTextFromPDF(file: File): Promise<string> {
-  try {
-    // Convert file to ArrayBuffer
-    const arrayBuffer = await file.arrayBuffer()
-    
-    // Use pdfjs-dist with ES module import for the new version
-    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
-    
-    // Load the PDF document
-    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) })
-    const pdf = await loadingTask.promise
-    
-    let fullText = ''
-    
-    // Extract text from each page
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum)
-      const textContent = await page.getTextContent()
-      
-      // Combine text items
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ')
-      
-      fullText += pageText + '\n'
-    }
-    
-    return fullText.trim() || 'No text content found in PDF'
-  } catch (error) {
-    console.error('PDF parsing error:', error)
-    // Return a fallback message instead of throwing
-    return 'PDF content could not be extracted. Please try uploading a different file format.'
-  }
+// PDF functionality removed - only DOCX and TXT supported
+export async function extractTextFromPDF(file: File | Blob): Promise<string> {
+  return 'PDF files are not supported. Please upload a DOCX or TXT file instead.'
 }
 
 // DOCX text extraction
@@ -86,7 +55,18 @@ export async function processCVWithClaude(cvContent: string): Promise<CVData> {
         throw new Error('Unexpected response type from Claude')
       }
       
-      const parsedData = JSON.parse(content.text)
+      // Check if Claude returned an apology or error message instead of JSON
+      const responseText = content.text.trim()
+      if (responseText.startsWith('I apologize') || 
+          responseText.startsWith('I\'m sorry') ||
+          responseText.startsWith('I cannot') ||
+          responseText.startsWith('Unable to') ||
+          !responseText.startsWith('{')) {
+        console.error('Claude returned non-JSON response:', responseText.substring(0, 200))
+        throw new Error('Claude returned an error message instead of JSON data')
+      }
+      
+      const parsedData = JSON.parse(responseText)
       
       // Validate the parsed data
       const validatedData = validateCVData(parsedData)
