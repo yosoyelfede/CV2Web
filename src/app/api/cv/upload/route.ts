@@ -10,6 +10,22 @@ import { logFileUploadViolation } from '@/lib/security-monitoring'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+// Handle CORS/preflight or accidental GETs with a consistent JSON response
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin') || '*'
+  const res = new NextResponse(null, { status: 204 })
+  res.headers.set('Access-Control-Allow-Origin', origin)
+  res.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token')
+  res.headers.set('Access-Control-Allow-Credentials', 'true')
+  res.headers.set('Allow', 'POST, OPTIONS')
+  return res
+}
+
+export async function GET() {
+  return NextResponse.json({ success: false, error: 'Method not allowed' }, { status: 405 })
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('=== CV UPLOAD ROUTE CALLED ===')
