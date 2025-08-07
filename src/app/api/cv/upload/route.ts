@@ -6,10 +6,6 @@ import { handleError, authErrorResponse, validationErrorResponse } from '@/lib/e
 import { validateFileUpload, validateFileSignature } from '@/lib/security-config'
 import { logFileUploadViolation } from '@/lib/security-monitoring'
 
-// Ensure Node.js runtime for proper multipart handling
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
-
 // Handle CORS/preflight or accidental GETs with a consistent JSON response
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin') || '*'
