@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { securityConfig } from './security-config'
 import { csrfMiddleware, setCSRFToken } from './csrf-protection'
-import { logUnauthorizedAccess, logCSRFViolation } from './security-monitoring'
+import { logUnauthorizedAccess, logCSRFViolation } from './security-monitoring-serverless'
 
 // Comprehensive security middleware for API routes
 export async function securityMiddleware(

@@ -76,13 +76,7 @@ export async function POST(request: NextRequest) {
         throw downloadError
       }
 
-      // Debug file information
-      console.log('File download successful:')
-      console.log('- File type:', typeof fileData)
-      console.log('- File size:', fileData?.size)
-      console.log('- File name:', document.original_filename)
-      console.log('- File path:', document.file_path)
-      console.log('- MIME type:', document.mime_type)
+
 
       // Extract text from file based on file type
       let cvContent: string
@@ -101,8 +95,7 @@ export async function POST(request: NextRequest) {
         cvContent = await fileData.text()
       }
       
-      console.log('CV content length:', cvContent.length)
-      console.log('CV content preview:', cvContent.substring(0, 200))
+
 
       // Validate and sanitize file content
       const contentValidation = validateFileContent(cvContent)
@@ -123,9 +116,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Process CV with Claude
-      console.log('Processing CV with Claude...')
       const cvData = await processCVWithClaude(cvContent)
-      console.log('CV data processed successfully')
 
       // Save processed data to database
       const { data: savedData, error: saveError } = await supabase
