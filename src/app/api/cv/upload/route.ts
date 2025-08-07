@@ -106,6 +106,13 @@ export async function POST(request: NextRequest) {
     return response
 
   } catch (error) {
-    return handleError(error, 'CV Upload')
+    console.error('CV Upload unexpected error:', error)
+    
+    // Ensure we always return a proper JSON response
+    return NextResponse.json({
+      success: false,
+      error: 'Upload failed due to an unexpected error. Please try again.',
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
+    }, { status: 500 })
   }
 } 

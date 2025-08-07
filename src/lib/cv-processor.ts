@@ -1,6 +1,7 @@
 import { claude, CLAUDE_MODEL, RETRY_CONFIG, calculateDelay } from './claude'
 import { CV_PROCESSING_SYSTEM_PROMPT, createCVProcessingPrompt } from './prompts'
 import { CVData, PersonalInfo, Experience, Education, Skills } from '@/types'
+import mammoth from 'mammoth'
 
 
 
@@ -12,18 +13,41 @@ export async function extractTextFromPDF(file: File | Blob): Promise<string> {
 // DOCX text extraction
 export async function extractTextFromDOCX(file: File): Promise<string> {
   try {
+    // Validate mammoth is available
+    if (!mammoth || typeof mammoth.extractRawText !== 'function') {
+      console.error('Mammoth package not properly loaded')
+      return 'DOCX processing is currently unavailable. Please try uploading a TXT file instead.'
+    }
+
     // Convert file to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer()
     
-    // Use mammoth.js to extract text from DOCX
-    const mammoth = await import('mammoth')
-    
     // For Node.js environment, use buffer instead of arrayBuffer
     const buffer = Buffer.from(arrayBuffer)
-    const result = await mammoth.default.extractRawText({ buffer })
+    
+    // Add timeout protection for large files
+    const result = await Promise.race([
+      mammoth.extractRawText({ buffer }),
+      new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('DOCX parsing timeout')), 30000)
+      )
+    ])
+    
     return result.value.trim() || 'No text content found in DOCX'
   } catch (error) {
     console.error('DOCX parsing error:', error)
+    
+    // Provide specific error messages based on error type
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    if (errorMessage.includes('timeout')) {
+      return 'DOCX file is too large or complex. Please try a smaller file or convert to TXT format.'
+    }
+    
+    if (errorMessage.includes('mammoth')) {
+      return 'DOCX processing is currently unavailable. Please try uploading a TXT file instead.'
+    }
+    
     // Return a fallback message instead of throwing
     return 'DOCX content could not be extracted. Please try uploading a different file format.'
   }
