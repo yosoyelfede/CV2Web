@@ -16,11 +16,11 @@ export async function extractTextFromDOCX(file: File): Promise<string> {
     const arrayBuffer = await file.arrayBuffer()
     
     // Use mammoth.js to extract text from DOCX
-    const mammoth = require('mammoth')
+    const mammoth = await import('mammoth')
     
     // For Node.js environment, use buffer instead of arrayBuffer
     const buffer = Buffer.from(arrayBuffer)
-    const result = await mammoth.extractRawText({ buffer })
+    const result = await mammoth.default.extractRawText({ buffer })
     return result.value.trim() || 'No text content found in DOCX'
   } catch (error) {
     console.error('DOCX parsing error:', error)
