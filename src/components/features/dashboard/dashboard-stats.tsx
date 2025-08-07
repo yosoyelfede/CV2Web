@@ -1,5 +1,5 @@
 import React from 'react'
-import Card from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import type { DashboardStats as DashboardStatsType } from '@/types'
 
 interface DashboardStatsProps {

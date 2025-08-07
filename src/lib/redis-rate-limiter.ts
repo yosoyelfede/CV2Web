@@ -56,7 +56,7 @@ export function createRedisRateLimiter(config: RateLimitConfig) {
       // Increment count
       if (count === 0) {
         // First request in window
-        await redis.setex(key, Math.ceil(config.windowMs / 1000), '1')
+        await redis.setEx(key, Math.ceil(config.windowMs / 1000), '1')
       } else {
         await redis.incr(key)
       }

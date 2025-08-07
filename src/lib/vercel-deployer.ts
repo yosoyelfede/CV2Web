@@ -1,4 +1,5 @@
-import { Vercel } from '@vercel/sdk'
+// Vercel deployment functionality temporarily disabled
+// We'll re-enable this when we're ready for website deployment
 
 export interface DeploymentConfig {
   name: string
@@ -22,55 +23,10 @@ export interface DeploymentResult {
 }
 
 class VercelDeployer {
-  private vercel: Vercel | null = null
-
-  constructor() {
-    const token = process.env.VERCEL_TOKEN
-    if (token) {
-      this.vercel = new Vercel({
-        bearerToken: token,
-      })
-    }
-  }
-
   async deployWebsite(config: DeploymentConfig): Promise<DeploymentResult> {
-    try {
-      if (!this.vercel) {
-        return {
-          success: false,
-          error: 'Vercel token not configured'
-        }
-      }
-
-      // Create deployment
-      const deployment = await this.vercel.deployments.createDeployment({
-        requestBody: {
-          name: config.name,
-          files: config.files,
-          projectSettings: config.projectSettings || {
-            buildCommand: undefined,
-            installCommand: undefined,
-            outputDirectory: undefined
-          },
-          target: config.target || 'preview',
-          meta: {
-            cv2w: 'true',
-            generated: new Date().toISOString()
-          }
-        }
-      })
-
-      return {
-        success: true,
-        deploymentId: deployment.id,
-        url: deployment.url
-      }
-    } catch (error) {
-      console.error('Vercel deployment error:', error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown deployment error'
-      }
+    return {
+      success: false,
+      error: 'Website deployment is currently disabled. This feature will be available soon!'
     }
   }
 
@@ -79,46 +35,14 @@ class VercelDeployer {
     url?: string
     error?: string
   }> {
-    try {
-      if (!this.vercel) {
-        return {
-          status: 'error',
-          error: 'Vercel token not configured'
-        }
-      }
-
-      const deployment = await this.vercel.deployments.getDeployment({
-        idOrUrl: deploymentId
-      })
-
-      return {
-        status: deployment.readyState || 'unknown',
-        url: deployment.url
-      }
-    } catch (error) {
-      console.error('Error getting deployment status:', error)
-      return {
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }
+    return {
+      status: 'disabled',
+      error: 'Website deployment is currently disabled'
     }
   }
 
   async deleteDeployment(deploymentId: string): Promise<boolean> {
-    try {
-      if (!this.vercel) {
-        return false
-      }
-
-      await this.vercel.deployments.deleteDeployment({
-        id: deploymentId
-      })
-
-      return true
-    } catch (error) {
-      console.error('Error deleting deployment:', error)
-      return false
-    }
+    return false
   }
 }
 
