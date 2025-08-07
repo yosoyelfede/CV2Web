@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { uploadRateLimiter } from '@/lib/rate-limiter'
 import { validateFileUpload } from '@/lib/security-config'
-import { logFileUploadViolation } from '@/lib/security-monitoring'
+import { logFileUploadViolation } from '@/lib/security-monitoring-serverless'
 
 export async function GET() {
   return NextResponse.json({ success: false, error: 'Method not allowed' }, { status: 405 })
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     
     // Test if logFileUploadViolation can be called
     const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
-    logFileUploadViolation(ip, 'test-violation', { fileName: file.name })
+    logFileUploadViolation(ip, '/api/cv/upload-test-4-correct', { fileName: file.name })
 
     return NextResponse.json({
       success: true,

@@ -4,7 +4,7 @@ import { uploadRateLimiter } from '@/lib/rate-limiter'
 import { csrfMiddleware, setCSRFToken } from '@/lib/csrf-protection'
 import { handleError, authErrorResponse, validationErrorResponse } from '@/lib/error-handler'
 import { validateFileUpload, validateFileSignature } from '@/lib/security-config'
-import { logFileUploadViolation } from '@/lib/security-monitoring'
+import { logFileUploadViolation } from '@/lib/security-monitoring-serverless'
 
 export async function GET() {
   return NextResponse.json({ success: false, error: 'Method not allowed' }, { status: 405 })
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const signatureValidation = validateFileSignature(file)
     
     // Test if security monitoring can be called
-    logFileUploadViolation(ip, 'test-violation', { fileName: file.name })
+    logFileUploadViolation(ip, '/api/cv/upload-test-6', { fileName: file.name })
 
     return NextResponse.json({
       success: true,

@@ -181,11 +181,11 @@ export class SecurityMonitor {
     const now = new Date()
     const cutoff = now.getTime() - this.SUSPICIOUS_WINDOW
 
-    for (const [ip, data] of this.suspiciousIPs.entries()) {
+    this.suspiciousIPs.forEach((data, ip) => {
       if (data.firstSeen.getTime() < cutoff) {
         this.suspiciousIPs.delete(ip)
       }
-    }
+    })
   }
 
   // Get log level based on severity
@@ -208,14 +208,14 @@ export class SecurityMonitor {
   private alertCriticalEvent(event: SecurityEvent): void {
     // Enhanced critical event logging
     console.error('🚨 CRITICAL SECURITY EVENT DETECTED 🚨')
-    console.error('=' * 50)
+    console.error('='.repeat(50))
     console.error(`Event Type: ${event.type}`)
     console.error(`IP Address: ${event.ip}`)
     console.error(`Endpoint: ${event.endpoint}`)
     console.error(`Method: ${event.method}`)
     console.error(`Timestamp: ${event.timestamp.toISOString()}`)
     console.error(`Details:`, JSON.stringify(event.details, null, 2))
-    console.error('=' * 50)
+    console.error('='.repeat(50))
 
     // Future: Integrate with alerting services
     // - Vercel incident notifications
