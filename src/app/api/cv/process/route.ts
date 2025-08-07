@@ -6,7 +6,7 @@ import { apiRateLimiter } from '@/lib/rate-limiter'
 import { csrfMiddleware, setCSRFToken } from '@/lib/csrf-protection'
 import { handleError, authErrorResponse, validationErrorResponse, notFoundErrorResponse } from '@/lib/error-handler'
 import { validateFileContent } from '@/lib/secure-content-sanitizer'
-import { logUnauthorizedAccess, logSuspiciousContent } from '@/lib/security-monitoring'
+import { logUnauthorizedAccess, logSuspiciousContent } from '@/lib/security-monitoring-serverless'
 
 export async function POST(request: NextRequest) {
   try {
