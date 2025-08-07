@@ -23,13 +23,10 @@ export async function POST(request: NextRequest) {
     
     // Test if rate limiter can be created
     const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
-    const rateLimitResult = await uploadRateLimiter.check(ip)
+    const rateLimitResult = uploadRateLimiter(request)
     
-    if (!rateLimitResult.success) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Rate limit exceeded' 
-      }, { status: 429 })
+    if (rateLimitResult) {
+      return rateLimitResult // This is already a NextResponse with 429
     }
     
     const formData = await request.formData()
@@ -49,7 +46,7 @@ export async function POST(request: NextRequest) {
       fileSize: file.size,
       fileType: file.type,
       supabaseConnected: !!supabase,
-      rateLimitSuccess: rateLimitResult.success
+      rateLimitSuccess: true
     })
 
   } catch (error) {
