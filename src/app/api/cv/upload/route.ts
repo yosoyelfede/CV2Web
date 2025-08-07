@@ -8,9 +8,16 @@ import { logFileUploadViolation } from '@/lib/security-monitoring'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== CV UPLOAD ROUTE CALLED ===')
+    console.log('Environment:', process.env.NODE_ENV)
+    console.log('Request method:', request.method)
+    console.log('Request URL:', request.url)
+    
     const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
     const endpoint = request.nextUrl.pathname
     const method = request.method
+
+    console.log('Upload endpoint called in production-safe mode')
 
     // Validate environment variables
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -35,12 +42,15 @@ export async function POST(request: NextRequest) {
     
     let supabase
     try {
+      console.log('Creating Supabase client...')
       supabase = createServerSupabaseClient()
+      console.log('Supabase client created successfully')
     } catch (error) {
       console.error('Failed to create Supabase client:', error)
       return NextResponse.json({
         success: false,
-        error: 'Database connection failed. Please try again.'
+        error: 'Database connection failed. Please try again.',
+        details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
       }, { status: 500 })
     }
     
@@ -145,6 +155,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('CV Upload unexpected error:', error)
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    console.error('Environment:', process.env.NODE_ENV)
+    console.error('Request method:', request.method)
+    console.error('Request URL:', request.url)
     
     // Ensure we always return a proper JSON response
     return NextResponse.json({
