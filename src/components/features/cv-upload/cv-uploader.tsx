@@ -48,9 +48,20 @@ export default function CVUploader({ userId, onUploaded }: CVUploaderProps) {
         body: formData,
       })
 
+      console.log('Upload response status:', uploadResponse.status)
+      console.log('Upload response headers:', Object.fromEntries(uploadResponse.headers.entries()))
+
       if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json()
-        throw new Error(errorData.error || 'Upload failed')
+        const responseText = await uploadResponse.text()
+        console.log('Upload error response text:', responseText)
+        
+        try {
+          const errorData = JSON.parse(responseText)
+          throw new Error(errorData.error || 'Upload failed')
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError)
+          throw new Error(`Upload failed: ${responseText || 'Empty response'}`)
+        }
       }
 
       const uploadResult = await uploadResponse.json()
