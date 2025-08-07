@@ -12,6 +12,15 @@ export async function POST(request: NextRequest) {
     const endpoint = request.nextUrl.pathname
     const method = request.method
 
+    // Validate environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error('Missing Supabase environment variables')
+      return NextResponse.json({
+        success: false,
+        error: 'Server configuration error. Please contact support.'
+      }, { status: 500 })
+    }
+
     // CSRF protection temporarily disabled for testing
     // const csrfResult = csrfMiddleware(request)
     // if (csrfResult) {
@@ -24,12 +33,41 @@ export async function POST(request: NextRequest) {
       return rateLimitResult
     }
     
-    const supabase = createServerSupabaseClient()
+    let supabase
+    try {
+      supabase = createServerSupabaseClient()
+    } catch (error) {
+      console.error('Failed to create Supabase client:', error)
+      return NextResponse.json({
+        success: false,
+        error: 'Database connection failed. Please try again.'
+      }, { status: 500 })
+    }
     
     // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return authErrorResponse()
+    let user
+    try {
+      const { data, error: authError } = await supabase.auth.getUser()
+      if (authError) {
+        console.error('Authentication error:', authError)
+        return NextResponse.json({
+          success: false,
+          error: 'Authentication failed. Please log in again.'
+        }, { status: 401 })
+      }
+      if (!data.user) {
+        return NextResponse.json({
+          success: false,
+          error: 'User not authenticated. Please log in.'
+        }, { status: 401 })
+      }
+      user = data.user
+    } catch (error) {
+      console.error('Authentication failed:', error)
+      return NextResponse.json({
+        success: false,
+        error: 'Authentication service unavailable. Please try again.'
+      }, { status: 500 })
     }
 
     const formData = await request.formData()
