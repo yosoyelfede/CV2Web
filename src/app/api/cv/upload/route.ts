@@ -6,6 +6,10 @@ import { handleError, authErrorResponse, validationErrorResponse } from '@/lib/e
 import { validateFileUpload, validateFileSignature } from '@/lib/security-config'
 import { logFileUploadViolation } from '@/lib/security-monitoring'
 
+// Ensure Node.js runtime for proper multipart handling
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     console.log('=== CV UPLOAD ROUTE CALLED ===')
@@ -80,8 +84,21 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    const formData = await request.formData()
-    const file = formData.get('file') as File
+    // Safely parse multipart form-data
+    let file: File | null = null
+    try {
+      const contentType = request.headers.get('content-type') || ''
+      if (!contentType.toLowerCase().includes('multipart/form-data')) {
+        return validationErrorResponse('Invalid content type. Expected multipart/form-data')
+      }
+
+      const formData = await request.formData()
+      const maybeFile = formData.get('file')
+      file = (maybeFile instanceof File) ? maybeFile : null
+    } catch (parseError) {
+      console.error('Failed to parse form-data:', parseError)
+      return NextResponse.json({ success: false, error: 'Failed to read upload payload' }, { status: 400 })
+    }
     
     if (!file) {
       return validationErrorResponse('No file provided')
@@ -111,13 +128,26 @@ export async function POST(request: NextRequest) {
       return validationErrorResponse(signatureValidation.error || 'File signature validation failed')
     }
 
-    // Upload file to Supabase Storage
+    // Upload file to Supabase Storage (use ArrayBuffer for Node reliability)
     const fileExt = file.name.split('.').pop()
     const fileName = `${user.id}/${Date.now()}.${fileExt}`
-    
+
+    let contentType = file.type
+    if (!contentType) {
+      // Fallback content type based on extension
+      const ext = (fileExt || '').toLowerCase()
+      if (ext === 'doc') contentType = 'application/msword'
+      else if (ext === 'docx') contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      else if (ext === 'txt') contentType = 'text/plain'
+      else contentType = 'application/octet-stream'
+    }
+
+    const arrayBuffer = await file.arrayBuffer()
+    const bytes = new Uint8Array(arrayBuffer)
+
     const { error: uploadError } = await supabase.storage
       .from('cv-documents')
-      .upload(fileName, file)
+      .upload(fileName, bytes, { contentType, upsert: false })
 
     if (uploadError) {
       console.error('Storage upload error:', uploadError)
