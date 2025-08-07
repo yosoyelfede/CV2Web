@@ -108,7 +108,32 @@ export interface WebsiteConfig {
 
 
 
+// Dashboard types
+export interface DashboardStats {
+  total_cvs: number
+  processed_cvs: number
+  total_websites: number
+  live_websites: number
+}
+
 // UI Component types
+export interface CardProps {
+  title?: string
+  description?: string
+  children: React.ReactNode
+  className?: string
+  onClick?: () => void
+  hover?: boolean
+}
+
+export interface ModalProps {
+  isOpen: boolean
+  onClose: () => void
+  title?: string
+  children: React.ReactNode
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+}
+
 export interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive'
   size?: 'sm' | 'md' | 'lg'

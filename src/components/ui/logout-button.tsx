@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
+import { LogOut } from 'lucide-react'
 
 interface LogoutButtonProps {
   className?: string
@@ -48,7 +49,7 @@ export function LogoutButton({
       disabled={loading}
       className={className}
     >
-      <span className="material-symbols-rounded text-lg">logout</span>
+      <LogOut className="w-5 h-5" />
       {loading ? 'Signing out...' : children}
     </Button>
   )

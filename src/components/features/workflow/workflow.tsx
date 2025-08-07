@@ -113,7 +113,7 @@ export default function Workflow({ userId }: WorkflowProps) {
               </div>
               <h2 className="text-headline-1 mb-4 text-gray-900">Upload Your CV</h2>
               <p className="text-body-1 text-gray-600 max-w-2xl mx-auto text-balance">
-                Start by uploading your CV or selecting a previously uploaded one. We'll extract all the information and prepare it for your website.
+                Start by uploading your CV or selecting a previously uploaded one. We&apos;ll extract all the information and prepare it for your website.
               </p>
             </div>
             
@@ -177,7 +177,7 @@ export default function Workflow({ userId }: WorkflowProps) {
                 </div>
                 <h3 className="text-headline-3 mb-4 text-gray-900">Processing Your CV</h3>
                 <p className="text-body-2 text-gray-600">
-                  We're analyzing your CV and generating your website...
+                  We&apos;re analyzing your CV and generating your website...
                 </p>
               </div>
               <WebsiteGenerator 

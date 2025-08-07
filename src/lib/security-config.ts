@@ -29,7 +29,6 @@ export const securityConfig = {
   fileUpload: {
     maxSize: 10 * 1024 * 1024, // 10MB
     allowedTypes: [
-      'application/pdf',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'text/plain'
@@ -41,7 +40,6 @@ export const securityConfig = {
     // File signature validation
     validateSignature: true,
     signatures: {
-      'application/pdf': [0x25, 0x50, 0x44, 0x46], // %PDF
       'application/msword': [0xD0, 0xCF, 0x11, 0xE0], // DOC
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': [0x50, 0x4B, 0x03, 0x04], // DOCX
       'text/plain': [] // No signature for text files

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -26,11 +26,7 @@ export default function CVList({ userId, onSelectCV, selectedCVId }: CVListProps
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const supabase = createClient()
 
-  useEffect(() => {
-    fetchCVDocuments()
-  }, [userId])
-
-  const fetchCVDocuments = async () => {
+  const fetchCVDocuments = useCallback(async () => {
     try {
       setLoading(true)
       const { data, error } = await supabase
@@ -49,7 +45,11 @@ export default function CVList({ userId, onSelectCV, selectedCVId }: CVListProps
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId, supabase])
+
+  useEffect(() => {
+    fetchCVDocuments()
+  }, [fetchCVDocuments])
 
   const handleDeleteCV = async (cvId: string, e: React.MouseEvent) => {
     e.stopPropagation()
