@@ -4,7 +4,7 @@ import { uploadRateLimiter } from '@/lib/rate-limiter'
 import { csrfMiddleware, setCSRFToken } from '@/lib/csrf-protection'
 import { handleError, authErrorResponse, validationErrorResponse } from '@/lib/error-handler'
 import { validateFileUpload, validateFileSignature } from '@/lib/security-config'
-import { logFileUploadViolation } from '@/lib/security-monitoring'
+import { logFileUploadViolation } from '@/lib/security-monitoring-serverless'
 
 // Handle CORS/preflight or accidental GETs with a consistent JSON response
 export async function OPTIONS(request: NextRequest) {
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     // Validate file using security config
     const validation = validateFileUpload(file)
     if (!validation.valid) {
-      logFileUploadViolation(ip, endpoint, method, {
+      logFileUploadViolation(ip, endpoint, {
         filename: file.name,
         size: file.size,
         type: file.type,
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
     // Validate file signature (magic numbers)
     const signatureValidation = await validateFileSignature(file)
     if (!signatureValidation.valid) {
-      logFileUploadViolation(ip, endpoint, method, {
+      logFileUploadViolation(ip, endpoint, {
         filename: file.name,
         size: file.size,
         type: file.type,
